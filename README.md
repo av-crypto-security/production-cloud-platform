@@ -1,5 +1,4 @@
-# Production Cloud Platform
-
+# Production Cloud Platform (platform engineering lifecycle)
 Production-style cloud-native platform demonstrating modern platform engineering and infrastructure automation practices.
 
 ---
@@ -34,3 +33,89 @@ Microservices
    ↓
 PostgreSQL / Redis
 ```
+
+## Core Components
+### Infrastructure
+Terraform
+VPC networking
+IAM configuration
+Security groups
+Environment isolation
+### Kubernetes Platform
+Deployments
+Services
+Ingress
+Autoscaling
+Rolling updates
+Health checks
+### CI/CD
+GitHub Actions
+Automated build pipelines
+Container image deployment
+Rollback workflows
+### Observability
+Prometheus
+Grafana
+Loki
+Centralized logging
+Alerting
+### Security
+TLS
+Kubernetes secrets
+Network policies
+Secure service communication
+
+## Repository Structure
+```
+docs/
+infrastructure/
+kubernetes/
+services/
+observability/
+security/
+ci-cd/
+scripts/
+screenshots/
+```
+
+## Failure Recovery Scenarios
+
+The platform includes operational scenarios for:
+Pod failure recovery
+Rolling deployments
+Failed deployment rollback
+Node failure handling
+Autoscaling under load
+
+## Screenshots
+
+Architecture diagrams, dashboards and deployment screenshots are located in:
+
+`screenshots/`
+
+## Documentation
+
+Detailed documentation is available in:
+
+`docs/`
+
+Including:
+
+architecture
+deployment workflow
+operations
+troubleshooting
+threat model
+
+## Technology Stack
+Kubernetes
+Terraform
+Docker
+GitHub Actions
+Prometheus
+Grafana
+PostgreSQL
+Redis
+
+## License
+MIT License
