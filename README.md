@@ -1,5 +1,5 @@
 # Production Cloud Platform (platform engineering lifecycle)
-Production-style cloud-native platform demonstrating modern platform engineering and infrastructure automation practices.
+Production-style cloud-native task processing platform demonstrating Kubernetes orchestration, CI/CD automation, observability and operational reliability practices.
 
 ---
 
@@ -23,16 +23,32 @@ The project demonstrates operational and infrastructure patterns commonly used i
 ```text
 Internet
    ↓
-Load Balancer
+NGINX Ingress
    ↓
-Ingress Controller
+FastAPI API Service
    ↓
-Kubernetes Cluster
+Redis Queue
    ↓
-Microservices
+Worker Service
    ↓
-PostgreSQL / Redis
+PostgreSQL
 ```
+
+## Platform workflow
+1. API clients submit tasks through the FastAPI service
+2. Tasks are queued in Redis
+3. Worker services asynchronously process queued jobs
+4. Task metadata and status are stored in PostgreSQL
+5. Prometheus and Loki collect operational metrics and logs
+6. Grafana dashboards provide observability into platform health
+
+## Operational Goals
+- rolling deployments
+- self-healing workloads
+- horizontal scaling
+- centralized logging
+- infrastructure reproducibility
+- deployment automation
 
 ## Core Components
 ### Infrastructure
@@ -116,6 +132,5 @@ Prometheus
 Grafana
 PostgreSQL
 Redis
-
 ## License
 MIT License
