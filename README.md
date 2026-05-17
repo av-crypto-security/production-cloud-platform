@@ -1,46 +1,49 @@
 # Production Cloud Platform (platform engineering lifecycle)
-Production-style cloud-native task processing platform demonstrating Kubernetes orchestration, CI/CD automation, observability and operational reliability practices.
+Production-style infrastructure monitoring and telemetry processing platform demonstrating Kubernetes orchestration, CI/CD automation, observability and operational reliability practices.
+
 
 ---
 
 ## Overview
 
-This repository contains a production-oriented cloud platform implementation focused on:
+This repository contains a production-style cloud-native platform prototype for infrastructure monitoring and telemetry processing.
+The platform demonstrates operational patterns commonly used in modern cloud-native systems, including:
 
+- telemetry ingestion
+- asynchronous task processing
 - Kubernetes orchestration
-- Infrastructure as Code with Terraform
 - CI/CD automation
-- Observability and monitoring
-- Secure networking
-- High availability deployment strategies
+- centralized observability
+- operational reliability practices
 
-The project demonstrates operational and infrastructure patterns commonly used in modern cloud-native environments.
+The system models a simplified monitoring workflow for industrial and technical infrastructure environments.
 
 ---
 
 ## Architecture
 
 ```text
-Internet
-   ↓
-NGINX Ingress
-   ↓
-FastAPI API Service
-   ↓
-Redis Queue
-   ↓
-Worker Service
-   ↓
-PostgreSQL
+Monitoring Devices / External Systems
+                ↓
+        NGINX Ingress
+                ↓
+        FastAPI API Service
+                ↓
+            Redis Queue
+                ↓
+        Telemetry Worker
+                ↓
+            PostgreSQL
 ```
+Prometheus, Grafana and Loki provide centralized monitoring, metrics collection and log aggregation.
 
 ## Platform workflow
-1. API clients submit tasks through the FastAPI service
-2. Tasks are queued in Redis
-3. Worker services asynchronously process queued jobs
-4. Task metadata and status are stored in PostgreSQL
+1. Monitoring devices or external systems submit telemetry events through the ingestion API
+2. The API validates and queues telemetry data in Redis
+3. Worker services asynchronously process telemetry events
+4. Processing results and alert metadata are stored in PostgreSQL
 5. Prometheus and Loki collect operational metrics and logs
-6. Grafana dashboards provide observability into platform health
+6. Grafana dashboards provide observability into platform health and workload processing
 
 ## Operational Goals
 - rolling deployments
