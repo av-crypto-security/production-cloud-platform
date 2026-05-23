@@ -23,17 +23,67 @@ The system models a simplified monitoring workflow for industrial and technical 
 ## Architecture
 
 ```text
-Monitoring Devices / External Systems
-                ↓
-        NGINX Ingress
-                ↓
-        FastAPI API Service
-                ↓
-            Redis Queue
-                ↓
-        Telemetry Worker
-                ↓
-            PostgreSQL
+                    ┌─────────────────────┐
+                    │ Sensor Simulators   │
+                    │ Python generators   │
+                    └─────────┬───────────┘
+                              │ HTTP JSON
+                              ▼
+                    ┌─────────────────────┐
+                    │ NGINX Ingress       │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │ FastAPI API         │
+                    │ validation/auth     │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │ Redis Queue         │
+                    │ async buffering     │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │ Telemetry Worker    │
+                    │ processing          │
+                    │ anomaly detection   │
+                    └─────────┬───────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │ PostgreSQL          │
+                    │ telemetry/events    │
+                    └─────────┬───────────┘
+                              │
+          ┌───────────────────┼───────────────────┐
+          ▼                   ▼                   ▼
+ ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
+ │ Prometheus     │ │ Loki           │ │ OpenTelemetry  │
+ │ metrics        │ │ logs           │ │ traces         │
+ └────────┬───────┘ └────────┬───────┘ └────────┬───────┘
+          └──────────────────┼──────────────────┘
+                             ▼
+                    ┌─────────────────────┐
+                    │ Grafana             │
+                    │ dashboards/alerts   │
+                    └─────────────────────┘
+
+
+        ┌──────────────────────────────────────┐
+        │ Kubernetes (k3s/kind/EKS/GKE)        │
+        │ deployments/services/HPA/secrets     │
+        └──────────────────────────────────────┘
+
+
+        ┌──────────────────────────────────────┐
+        │ GitHub Actions CI/CD                 │
+        │ build/test/deploy                    │
+        └──────────────────────────────────────┘
+
+
+        ┌──────────────────────────────────────┐
+        │ Terraform IaC                        │
+        │ cluster/network/storage              │
+        └──────────────────────────────────────┘
 ```
 Prometheus, Grafana and Loki provide centralized monitoring, metrics collection and log aggregation.
 
@@ -86,15 +136,44 @@ Secure service communication
 
 ## Repository Structure
 ```
-docs/
-infrastructure/
-kubernetes/
-services/
-observability/
-security/
-ci-cd/
-scripts/
-screenshots/
+production-cloud-platform/
+│
+├── infrastructure/
+│   ├── terraform/
+│   ├── helm/
+│   └── scripts/
+│
+├── kubernetes/
+│   ├── base/
+│   ├── monitoring/
+│   ├── ingress/
+│   └── applications/
+│
+├── services/
+│   ├── api/
+│   ├── worker/
+│   ├── simulator/
+│   └── shared/
+│
+├── observability/
+│   ├── grafana/
+│   ├── prometheus/
+│   ├── loki/
+│   └── otel/
+│
+├── docs/
+│   ├── architecture/
+│   ├── operations/
+│   ├── runbooks/
+│   └── threat-model/
+│
+├── .github/workflows/
+│
+├── screenshots/
+│
+├── Makefile
+├── docker-compose.yaml
+└── README.md
 ```
 
 ## Failure Recovery Scenarios
