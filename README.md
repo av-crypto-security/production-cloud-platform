@@ -1,20 +1,40 @@
 # Production Cloud Platform (platform engineering lifecycle)
+
 Production-style infrastructure monitoring and telemetry processing platform demonstrating Kubernetes orchestration, CI/CD automation, observability and operational reliability practices.
 
+---
+
+## Current Development Status
+
+This repository is actively maintained and continuously expanded as part of a production-style engineering portfolio.
+
+Recent focus areas include:
+
+* cloud-native infrastructure and platform engineering;
+* Kubernetes and container orchestration;
+* CI/CD automation and GitOps workflows;
+* observability, monitoring and reliability engineering;
+* secure networking and infrastructure security.
+
+Some components and documentation are currently being updated and refactored to reflect ongoing improvements and new functionality.
+
+Planned enhancements include:
+
+* end-to-end CI/CD pipelines;
+* Helm-based deployments;
+* GitOps workflows with ArgoCD;
+* infrastructure observability and alerting;
+* production-style service deployment lifecycle.
+
+The repository remains functional and serves as a continuously evolving engineering project.
 
 ---
 
 ## Overview
 
-This repository contains a production-style cloud-native platform prototype for infrastructure monitoring and telemetry processing.
-The platform demonstrates operational patterns commonly used in modern cloud-native systems, including:
+Production-style cloud platform demonstrating the complete service delivery lifecycle, including infrastructure provisioning, containerization, Kubernetes orchestration, CI/CD automation, GitOps deployment workflows, observability and operational reliability practices.
 
-- telemetry ingestion
-- asynchronous task processing
-- Kubernetes orchestration
-- CI/CD automation
-- centralized observability
-- operational reliability practices
+The project simulates telemetry ingestion and processing for infrastructure monitoring systems and is being developed incrementally using production engineering approaches.
 
 The system models a simplified monitoring workflow for industrial and technical infrastructure environments.
 
