@@ -40,7 +40,11 @@ The system models a simplified monitoring workflow for industrial and technical 
 
 ---
 
-## Architecture
+## Target Production Architecture
+
+The following diagram represents the target production architecture that is being implemented incrementally.
+Current development focuses on telemetry ingestion, data storage and service deployment lifecycle components.
+Additional platform capabilities such as GitOps workflows, observability, service orchestration and infrastructure automation are introduced in subsequent development stages.
 
 ```text
                     ┌─────────────────────┐
@@ -106,6 +110,29 @@ The system models a simplified monitoring workflow for industrial and technical 
         └──────────────────────────────────────┘
 ```
 Prometheus, Grafana and Loki provide centralized monitoring, metrics collection and log aggregation.
+
+## Current Implementation Status
+
+Implemented:
+
+- sensor simulator service
+- telemetry generation
+- HTTP-based telemetry ingestion workflow (in progress)
+
+In development:
+
+- FastAPI ingestion service
+- PostgreSQL persistence layer
+- Docker containerization
+
+Planned:
+
+- Kubernetes deployment
+- Helm packaging
+- GitHub Actions CI
+- ArgoCD GitOps deployment
+- Prometheus and Grafana observability stack
+- Redis
 
 ## Platform workflow
 1. Monitoring devices or external systems submit telemetry events through the ingestion API
