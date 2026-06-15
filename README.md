@@ -8,6 +8,16 @@ Production-style infrastructure monitoring and telemetry processing platform dem
 
 This repository is actively maintained and continuously expanded as part of a production-style engineering portfolio.
 
+---
+Current implementation:
+
+- Sensor Simulator
+- FastAPI Ingestion API
+- PostgreSQL Persistence
+- Background Processing Service
+- Alert Generation Workflow
+---
+
 Recent focus areas include:
 
 * cloud-native infrastructure and platform engineering;
