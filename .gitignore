@@ -1,0 +1,30 @@
+# Py
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual envs
+venv/
+.env/
+.venv/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# PosrgreSQL dumps
+*.dump
+*.bak
+backups/
+exports/
+
+# OS files
+.DS_Store
+Thumbs.db
