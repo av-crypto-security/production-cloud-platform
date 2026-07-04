@@ -50,6 +50,18 @@ The system models a simplified monitoring workflow for industrial and technical 
 
 ---
 
+## Security Notice
+
+This repository uses demonstration credentials.
+Kubernetes Secrets included in the repository are intended only for testing environments and must be replaced with properly managed secrets in production deployments.
+
+Exanmples include:
+
+- K8s Secrets
+- GitHub Secrets
+- External Secret Managers
+- Vault-based secret storage
+
 ## Target Production Architecture
 
 The following diagram represents the target production architecture that is being implemented incrementally.
@@ -125,19 +137,19 @@ Prometheus, Grafana and Loki provide centralized monitoring, metrics collection 
 
 Implemented:
 
-- sensor simulator service
-- telemetry generation
-- HTTP-based telemetry ingestion workflow (in progress)
-
-In development:
-
-- FastAPI ingestion service
-- PostgreSQL persistence layer
-- Docker containerization
+- Sensor Simulator service
+- FastAPI Ingestion API
+- PostgreSQL Persistence
+- Telemetry Processing Worker
+- Docker Containerization
+- Docker Conpose Deployment
+- Kubernetes Deployment (Kind)
+- ConfigMap and Secrets
+- Stateful PostgreSQL Storage
 
 Planned:
 
-- Kubernetes deployment
+- GitHub Container Registry
 - Helm packaging
 - GitHub Actions CI
 - ArgoCD GitOps deployment

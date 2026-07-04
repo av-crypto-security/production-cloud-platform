@@ -1,7 +1,6 @@
 import os
 import time
 import psycopg2
-import time
 
 while True:
 	try:
@@ -77,7 +76,7 @@ while True:
 		if tilt > 5:
 			alerts.append(
 				(
-					"HUGH_TILT",
+					"HIGH_TILT",
 					"critical",
 					f"Tilt={tilt}"
 				)

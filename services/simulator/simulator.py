@@ -39,7 +39,27 @@ def send_measurement(data):
 	)
 	return response.status_code
 
+def wait_for_api():
+	while True:
+		try:
+			response = requests.get(
+				"http://ingestion-api:8000/health",
+				timeout=5,
+			)
+
+			if response.status_code == 200:
+				print("API id ready")
+				return
+
+		except requests.RequestException:
+			pass
+
+		print("Waiting for ingestion-api...")
+		time.sleep(5)
+
 def main():
+	wait_for_api()
+
 	while True:
 		data = generate_measurement()
 		data = inject_anomaly(data)

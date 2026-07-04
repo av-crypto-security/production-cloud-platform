@@ -3,13 +3,15 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.py[cod]
+*.so
 
-# Virtual envs
+# Envs and files
 venv/
 .env/
 .venv/
-
-# Environment
+env/
+.env.*
 .env
 
 # IDE
@@ -19,12 +21,20 @@ venv/
 # Logs
 *.log
 
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
 # PosrgreSQL dumps
 *.dump
 *.bak
 backups/
 exports/
 
+# K8s local files
+*.kubeconfig
+ 
 # OS files
 .DS_Store
 Thumbs.db

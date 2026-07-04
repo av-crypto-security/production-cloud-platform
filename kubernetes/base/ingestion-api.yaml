@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestion-api
+  namespace: telemetry-system
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: ingestion-api
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestion-api
+  namespace: telemetry-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingestion-api
+  template:
+    metadata:
+      labels:
+        app: ingestion-api
+    spec:
+      containers:
+        - name: ingestion-api
+          image: ingestion-api:v1.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: telemetry-config
+                  key: POSTGRES_HOST
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: telemetry-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: telemetry-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: telemetry-secret
+                  key: POSTGRES_PASSWORD
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
