@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: simulator
-          image: simulator:v1.0.0
+          image: ghcr.io/av-crypto-security/simulator:v1.0.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:

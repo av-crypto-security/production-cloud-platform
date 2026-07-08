@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: processing-service
-          image: processing-service:v1.0.1
+          image: ghcr.io/av-crypto-security/processing-service:v1.0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_HOST

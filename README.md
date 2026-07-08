@@ -55,12 +55,22 @@ The system models a simplified monitoring workflow for industrial and technical 
 This repository uses demonstration credentials.
 Kubernetes Secrets included in the repository are intended only for testing environments and must be replaced with properly managed secrets in production deployments.
 
-Exanmples include:
+Examples include:
 
 - K8s Secrets
 - GitHub Secrets
 - External Secret Managers
 - Vault-based secret storage
+
+## Container Registry
+
+Container images are published to GitHub Container Registry (GHCR).
+Current images:
+- `ghcr.io/av-crypto-security/ingestion-api`
+- `ghcr.io/av-crypto-security/processing-service`
+- `ghcr.io/av-crypto-security/simulator`
+The Kubernetes manifests reference these images directly, allowing clean cluster provisioning.
+This approach mirrors common production deployment workflows where Kubernetes pulls versioned container images from a remote registry.
 
 ## Target Production Architecture
 
@@ -142,14 +152,14 @@ Implemented:
 - PostgreSQL Persistence
 - Telemetry Processing Worker
 - Docker Containerization
-- Docker Conpose Deployment
+- Docker Compose Deployment
 - Kubernetes Deployment (Kind)
-- ConfigMap and Secrets
+- ConfigMaps and Secrets
 - Stateful PostgreSQL Storage
+- GitHub Container Registry (GHCR) integration
 
 Planned:
 
-- GitHub Container Registry
 - Helm packaging
 - GitHub Actions CI
 - ArgoCD GitOps deployment
@@ -202,48 +212,6 @@ TLS
 Kubernetes secrets
 Network policies
 Secure service communication
-
-## Repository Structure
-```
-production-cloud-platform/
-│
-├── infrastructure/
-│   ├── terraform/
-│   ├── helm/
-│   └── scripts/
-│
-├── kubernetes/
-│   ├── base/
-│   ├── monitoring/
-│   ├── ingress/
-│   └── applications/
-│
-├── services/
-│   ├── api/
-│   ├── worker/
-│   ├── simulator/
-│   └── shared/
-│
-├── observability/
-│   ├── grafana/
-│   ├── prometheus/
-│   ├── loki/
-│   └── otel/
-│
-├── docs/
-│   ├── architecture/
-│   ├── operations/
-│   ├── runbooks/
-│   └── threat-model/
-│
-├── .github/workflows/
-│
-├── screenshots/
-│
-├── Makefile
-├── docker-compose.yaml
-└── README.md
-```
 
 ## Failure Recovery Scenarios
 
