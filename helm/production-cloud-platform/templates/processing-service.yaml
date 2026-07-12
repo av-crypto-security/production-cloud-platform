@@ -4,7 +4,7 @@ metadata:
   name: processing-service
   namespace: telemetry-system
 spec:
-  replicas: 1
+  replicas: {{ .Values.processing.replicaCount }}
   selector:
     matchLabels:
       app: processing-service

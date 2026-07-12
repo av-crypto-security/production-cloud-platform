@@ -17,7 +17,7 @@ metadata:
   name: ingestion-api
   namespace: telemetry-system
 spec:
-  replicas: 1
+  replicas: {{ .Values.ingestion.replicaCount }}
   selector:
     matchLabels:
       app: ingestion-api
