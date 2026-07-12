@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: simulator
-  namespace: telemetry-system
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.simulator.replicaCount }}
   selector:

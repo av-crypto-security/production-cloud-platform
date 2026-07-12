@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: telemetry-config
-  namespace: telemetry-system
+  namespace: {{ .Release.Namespace }}
 data:
-  POSTGRES_HOST: postgres-service
-  POSTGRES_DB: telemetry
+  POSTGRES_HOST: {{ .Values.postgres.host | quote }}
+  POSTGRES_DB: {{ .Values.postgres.database | quote }}

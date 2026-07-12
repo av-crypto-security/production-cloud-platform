@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
-  namespace: telemetry-system
+  namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -14,7 +14,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-service
-  namespace: telemetry-system
+  namespace: {{ .Release.Namespace }}
 spec:
   ports:
     - port: 5432
@@ -27,7 +27,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-init-sql
-  namespace: telemetry-system
+  namespace: {{ .Release.Namespace }}
 data:
   init.sql: |
     CREATE TABLE IF NOT EXISTS measurements (
@@ -54,7 +54,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
-  namespace: telemetry-system
+  namespace: {{ .Release.Namespace }}
 spec:
   serviceName: postgres-service
   replicas: 1

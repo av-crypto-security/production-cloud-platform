@@ -21,3 +21,11 @@ postgres:
     repository: postgres
     tag: "16"
   storage: 10Gi
+
+
+  host: postgres-service
+  database: telemetry
+
+
+  user: postgres
+  password: postgres
