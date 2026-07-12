@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: processing-service
-          image: ghcr.io/av-crypto-security/processing-service:v1.0.1
+          image: "{{ .Values.processing.image.repository }}:{{ .Values.processing.image.tag }}"
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_HOST

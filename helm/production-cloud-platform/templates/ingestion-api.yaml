@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: ingestion-api
-          image: ghcr.io/av-crypto-security/ingestion-api:v1.0.0
+          image: "{{ .Values.ingestion.image.repository }}:{{ .Values.ingestion.image.tag }}"
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_HOST
