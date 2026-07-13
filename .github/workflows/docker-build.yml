@@ -26,3 +26,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ingestion-api
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/ingestion-api
+          push: true
+          tags: |
+            ghcr.io/av-crypto-security/ingestion-api:v1.0.0
+            ghcr.io/av-crypto-security/ingestion-api:latest
