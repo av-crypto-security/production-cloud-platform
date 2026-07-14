@@ -35,3 +35,21 @@ jobs:
           tags: |
             ghcr.io/av-crypto-security/ingestion-api:v1.0.0
             ghcr.io/av-crypto-security/ingestion-api:latest
+
+      - name: Build and push processing-service
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/processing-service
+          push: true
+          tags: |
+            ghcr.io/av-crypto-security/processing-service:v1.0.1
+            ghcr.io/av-crypto-security/processing-service:latest
+
+      - name: Build and push simulator
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/simulator
+          push: true
+          tags: |
+            ghcr.io/av-crypto-security/simulator:v1.0.0
+            ghcr.io/av-crypto-security/simulator:latest
