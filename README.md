@@ -1,6 +1,8 @@
 # Production Cloud Platform (platform engineering lifecycle)
 
-Production-style infrastructure monitoring and telemetry processing platform demonstrating Kubernetes orchestration, CI/CD automation, observability and operational reliability practices.
+Production-style cloud platform demonstrating the complete software delivery lifecycle:
+Docker -> Kubernetes -> GHCR -> Helm -> GitHub Actions
+The project is being incrementally extended towards a full GitOps workflow using ArgoCD.
 
 ---
 
@@ -9,20 +11,15 @@ Production-style infrastructure monitoring and telemetry processing platform dem
 This repository is actively maintained and continuously expanded as part of a production-style engineering portfolio.
 
 ---
-Current implementation:
+Recently implemented:
 
-- Sensor Simulator
-- FastAPI Ingestion API
-- PostgreSQL Persistence
-- Background Processing Service
-- Alert Generation Workflow
+- GitHub Container Registry integration
+- Helm packaging
+- GitHub Actions CI pipeline
 ---
 
 Recent focus areas include:
 
-* cloud-native infrastructure and platform engineering;
-* Kubernetes and container orchestration;
-* CI/CD automation and GitOps workflows;
 * observability, monitoring and reliability engineering;
 * secure networking and infrastructure security.
 
@@ -30,11 +27,11 @@ Some components and documentation are currently being updated and refactored to 
 
 Planned enhancements include:
 
-* end-to-end CI/CD pipelines;
-* Helm-based deployments;
-* GitOps workflows with ArgoCD;
-* infrastructure observability and alerting;
-* production-style service deployment lifecycle.
+* GitOps deployment using ArgoCD
+* Prometheus metrics
+* Grafana dashboards
+* Redis integration
+* Infrastructure provisioning with Terraform
 
 The repository remains functional and serves as a continuously evolving engineering project.
 
@@ -54,24 +51,39 @@ The system models a simplified monitoring workflow for industrial and technical 
 
 This repository uses demonstration credentials.
 Kubernetes Secrets included in the repository are intended only for testing environments and must be replaced with properly managed secrets in production deployments.
-
-Examples include:
-
-- K8s Secrets
-- GitHub Secrets
-- External Secret Managers
-- Vault-based secret storage
+Development secrets are stored in Helm values for demonstration purposes only.
+Production deployments should use GitHub Secrets, External Secrets Operator or dedicated secret management solutions.
 
 ## Container Registry
 
 Container images are published to GitHub Container Registry (GHCR).
 Current images:
-- `ghcr.io/av-crypto-security/ingestion-api`
-- `ghcr.io/av-crypto-security/processing-service`
-- `ghcr.io/av-crypto-security/simulator`
+- `ghcr.io/av-crypto-security/ingestion-api:v1.0,0`
+- `ghcr.io/av-crypto-security/processing-service:v1.0.1`
+- `ghcr.io/av-crypto-security/simulator:v1.0.0`
 The Kubernetes manifests reference these images directly, allowing clean cluster provisioning.
 This approach mirrors common production deployment workflows where Kubernetes pulls versioned container images from a remote registry.
 
+## Helm Deployment
+
+The Kubernetes manifests are packaged as a reusable Helm Chart.
+Current Helm features include:
+- configurable image repository and tags
+- configurable replica count
+- parameterized ConfigMaps
+- parameterized Secrets
+- namespace abstraction using `.Release.Namespace`
+This enables reusable deployments across multiple Kubernetes environments.
+
+## Continuous Integration
+
+GitHub Actions sutomatically performs the following workflow on every push to the `main` branch:
+1. Checkout repository
+2. Authenticate to GHCR
+3. Build Docker images
+4. Publish versioned container images
+This provides automated image delivery for Kubernetes deployments.
+ 
 ## Target Production Architecture
 
 The following diagram represents the target production architecture that is being implemented incrementally.
@@ -157,11 +169,11 @@ Implemented:
 - ConfigMaps and Secrets
 - Stateful PostgreSQL Storage
 - GitHub Container Registry (GHCR) integration
+- Helm Chart
+- GitHub Actions CI Pipeline
 
 Planned:
 
-- Helm packaging
-- GitHub Actions CI
 - ArgoCD GitOps deployment
 - Prometheus and Grafana observability stack
 - Redis
