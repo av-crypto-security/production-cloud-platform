@@ -1,8 +1,17 @@
 # Production Cloud Platform (platform engineering lifecycle)
 
 Production-style cloud platform demonstrating the complete software delivery lifecycle:
-Docker -> Kubernetes -> GHCR -> Helm -> GitHub Actions
-The project is being incrementally extended towards a full GitOps workflow using ArgoCD.
+Docker -> Kubernetes -> GHCR -> Helm -> GitHub Actions -> ArgoCD
+Production-style cloud platform implementing a complete GitOps delivery workflow.
+
+---
+
+## GitOps Workflow
+
+```text
+Git Commit -> Git Push -> GitHub -> GitHub Actions -> Container Images (GHCR) -> ArgoCD detects Git changes -> Helm renders manifrests -> Kubernetes reconciles desired state
+```
+Implemented end-to-end GitOps delivery using GitHub Actions, GitHub Container Registry, Helm and ArgoCD with automatic synchronization and self-healing reconciliation.
 
 ---
 
@@ -13,9 +22,11 @@ This repository is actively maintained and continuously expanded as part of a pr
 ---
 Recently implemented:
 
-- GitHub Container Registry integration
-- Helm packaging
+- GitHub Container Registry (GHCR)
+- Helm chart packaging
 - GitHub Actions CI pipeline
+- ArgoCD GitOps deployment
+- Automated synchronization from Git to Kubernetes
 ---
 
 Recent focus areas include:
@@ -27,11 +38,12 @@ Some components and documentation are currently being updated and refactored to 
 
 Planned enhancements include:
 
-* GitOps deployment using ArgoCD
 * Prometheus metrics
 * Grafana dashboards
+* Loki log aggregation
+* Alertmanager
 * Redis integration
-* Infrastructure provisioning with Terraform
+* Terraform infrastructure provisioning
 
 The repository remains functional and serves as a continuously evolving engineering project.
 
@@ -40,11 +52,9 @@ The repository remains functional and serves as a continuously evolving engineer
 ## Overview
 
 Production-style cloud platform demonstrating the complete service delivery lifecycle, including infrastructure provisioning, containerization, Kubernetes orchestration, CI/CD automation, GitOps deployment workflows, observability and operational reliability practices.
-
 The project simulates telemetry ingestion and processing for infrastructure monitoring systems and is being developed incrementally using production engineering approaches.
-
 The system models a simplified monitoring workflow for industrial and technical infrastructure environments.
-
+GitOps delivery is implemented using ArgoCD. Kubernetes resources are managed through Helm charts stored in Git, allowing automatic synchronization between the repository and the cluster.
 ---
 
 ## Security Notice
@@ -75,14 +85,13 @@ Current Helm features include:
 - namespace abstraction using `.Release.Namespace`
 This enables reusable deployments across multiple Kubernetes environments.
 
-## Continuous Integration
+## CI/CD Pipeline
 
-GitHub Actions sutomatically performs the following workflow on every push to the `main` branch:
-1. Checkout repository
-2. Authenticate to GHCR
-3. Build Docker images
-4. Publish versioned container images
-This provides automated image delivery for Kubernetes deployments.
+```text
+Developer
+    |
+Git Push -> GitHub Repository -> GitHub Actions -> GHCR -> ArgoCD (GitOps) -> Helm Chart -> Kubernetes Cluster
+```
  
 ## Target Production Architecture
 
@@ -171,10 +180,11 @@ Implemented:
 - GitHub Container Registry (GHCR) integration
 - Helm Chart
 - GitHub Actions CI Pipeline
+- ArgoCD GitOps
+- Automatic synchronization (Git -> Kubernetes)
 
 Planned:
 
-- ArgoCD GitOps deployment
 - Prometheus and Grafana observability stack
 - Redis
 
@@ -193,6 +203,9 @@ Planned:
 - centralized logging
 - infrastructure reproducibility
 - deployment automation
+- GitOps delivery
+- automatic reconciliation
+- declarative deployments
 
 ## Core Components
 ### Infrastructure
@@ -259,6 +272,7 @@ Kubernetes
 Terraform
 Docker
 GitHub Actions
+ArgoCD
 Prometheus
 Grafana
 PostgreSQL
