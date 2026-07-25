@@ -1,6 +1,8 @@
 import os
 import time
 import psycopg2
+from prometheus_client import Counter
+from prometheus_client import start_http_server
 
 while True:
 	try:
@@ -16,6 +18,13 @@ while True:
 		time.sleep(5)
 
 cursor = conn.cursor()
+
+start_http_server(8001)
+
+processed_measurements = Counter (
+	"processed_measurements_total",
+	"Total processed measurements"
+)
 
 while True:
 	
@@ -118,5 +127,7 @@ while True:
 	print(
 		f"Processed {len(measurements)} measurements"
 	)
+
+	processed_measurements.inc(len(measurements))
 	
 	time.sleep(10)
