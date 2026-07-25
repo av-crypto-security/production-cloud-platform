@@ -17,6 +17,9 @@ spec:
         - name: processing-service
           image: "{{ .Values.processing.image.repository }}:{{ .Values.processing.image.tag }}"
           imagePullPolicy: IfNotPresent
+          ports:
+            - name: metrics
+              containerPort: 8001
           env:
             - name: POSTGRES_HOST
               valueFrom:

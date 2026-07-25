@@ -15,8 +15,11 @@ spec:
     spec:
       containers:
         - name: processing-service
-          image: ghcr.io/av-crypto-security/processing-service:v1.0.1
+          image: ghcr.io/av-crypto-security/processing-service:v1.1.0
           imagePullPolicy: IfNotPresent
+          ports:
+            - name: metrics
+              containerPort: 8001
           env:
             - name: POSTGRES_HOST
               valueFrom:
