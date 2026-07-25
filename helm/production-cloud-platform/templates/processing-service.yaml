@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: processing-service
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - name: metrics
+      port: 8001
+      targetPort: 8001
+  selector:
+    app: processing-service
+  type: ClusterIP
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
