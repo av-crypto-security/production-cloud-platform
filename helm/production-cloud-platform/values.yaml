@@ -1,14 +1,14 @@
 ingestion:
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: ghcr.io/av-crypto-security/ingestion-api
-    tag: v1.0.0
+    tag: v1.1.0
 
 processing:
   replicaCount: 1
   image:
     repository: ghcr.io/av-crypto-security/processing-service
-    tag: v1.0.1
+    tag: v1.1.0
 
 simulator:
   replicaCount: 0

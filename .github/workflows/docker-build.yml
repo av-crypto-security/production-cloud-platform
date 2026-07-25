@@ -33,7 +33,7 @@ jobs:
           context: ./services/ingestion-api
           push: true
           tags: |
-            ghcr.io/av-crypto-security/ingestion-api:v1.0.0
+            ghcr.io/av-crypto-security/ingestion-api:v1.1.0
             ghcr.io/av-crypto-security/ingestion-api:latest
 
       - name: Build and push processing-service
@@ -42,7 +42,7 @@ jobs:
           context: ./services/processing-service
           push: true
           tags: |
-            ghcr.io/av-crypto-security/processing-service:v1.0.1
+            ghcr.io/av-crypto-security/processing-service:v1.1.0
             ghcr.io/av-crypto-security/processing-service:latest
 
       - name: Build and push simulator
