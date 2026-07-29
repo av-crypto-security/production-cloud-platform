@@ -3,10 +3,13 @@ kind: Service
 metadata:
   name: ingestion-api
   namespace: telemetry-system
+  labels:
+    app: ingestion-api
 spec:
   ports:
-    - port: 8000
-      targetPort: 8000
+    - name: http
+      port: 8000
+      targetPort: http
   selector:
     app: ingestion-api
   type: ClusterIP

@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ingestion-api
+  namespace: telemetry-system
+  labels:
+    release: monitoring
+
+spec:
+  selector:
+    matchLabels:
+      app: ingestion-api
+
+  namespaceSelector:
+    matchNames:
+      - telemetry-system
+
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

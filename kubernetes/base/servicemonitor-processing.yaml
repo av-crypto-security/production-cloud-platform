@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: processing-service
+  namespace: telemetry-system
+  labels:
+    release: monitoring
+
+spec:
+  selector:
+    matchLabels:
+      app: processing-service
+
+  namespaceSelector:
+    matchNames:
+      - telemetry-system
+
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s

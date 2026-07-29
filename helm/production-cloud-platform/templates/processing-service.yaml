@@ -3,11 +3,13 @@ kind: Service
 metadata:
   name: processing-service
   namespace: {{ .Release.Namespace }}
+  labels:
+    app: processing-service
 spec:
   ports:
     - name: metrics
       port: 8001
-      targetPort: 8001
+      targetPort: metrics
   selector:
     app: processing-service
   type: ClusterIP
