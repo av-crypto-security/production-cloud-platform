@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-exporter
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.postgresExporter.replicaCount }}
+  selector:
+    matchLabels:
+      app: postgres-exporter
+  template:
+    metadata:
+      labels:
+        app: postgres-exporter
+    spec:
+      containers:
+        - name: postgres-exporter
+          image: "{{ .Values.postgresExporter.image.repository }}:{{ .Values.postgresExporter.image.tag }}"
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: DATA_SOURCE_URI
+              value: {{ .Values.postgresExporter.datasource.uri | quote }}
+
+            - name: DATA_SOURCE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: telemetry-secret
+                  key: POSTGRES_USER
+
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: telemetry-secret
+                  key: POSTGRES_PASSWORD
+
+          ports:
+            - name: metrics
+              containerPort: 9187
+
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 15
+            periodSeconds: 20
+
+          resources:
+{{ toYaml .Values.postgresExporter.resources | indent 12 }}
+
