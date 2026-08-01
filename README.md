@@ -27,6 +27,9 @@ Recently implemented:
 - GitHub Actions CI pipeline
 - ArgoCD GitOps deployment
 - Automated synchronization from Git to Kubernetes
+- Prometheus monitoring
+- ServiceMonitor integration
+- PostgreSQL Exporter
 ---
 
 Recent focus areas include:
@@ -38,11 +41,10 @@ Some components and documentation are currently being updated and refactored to 
 
 Planned enhancements include:
 
-* Prometheus metrics
 * Grafana dashboards
 * Loki log aggregation
 * Alertmanager
-* Redis integration
+* RabbitMQ integration
 * Terraform infrastructure provisioning
 
 The repository remains functional and serves as a continuously evolving engineering project.
@@ -68,8 +70,8 @@ Production deployments should use GitHub Secrets, External Secrets Operator or d
 
 Container images are published to GitHub Container Registry (GHCR).
 Current images:
-- `ghcr.io/av-crypto-security/ingestion-api:v1.0,0`
-- `ghcr.io/av-crypto-security/processing-service:v1.0.1`
+- `ghcr.io/av-crypto-security/ingestion-api:v1.1.0`
+- `ghcr.io/av-crypto-security/processing-service:v1.1.0`
 - `ghcr.io/av-crypto-security/simulator:v1.0.0`
 The Kubernetes manifests reference these images directly, allowing clean cluster provisioning.
 This approach mirrors common production deployment workflows where Kubernetes pulls versioned container images from a remote registry.
@@ -182,19 +184,30 @@ Implemented:
 - GitHub Actions CI Pipeline
 - ArgoCD GitOps
 - Automatic synchronization (Git -> Kubernetes)
+- Prometheus monitoring
+- ServiceMonitor integration
+- PostgreSQL Exporter
 
 Planned:
 
-- Prometheus and Grafana observability stack
-- Redis
+- Grafana dashboards
+- Loki centralized logging
+- Alertmanager
+- RabbitMQ
+- Alembic
+- HPA
+- NetworkPolicy
+- External Secrets or Vault
+- Terraform
+- Kafka
 
 ## Platform workflow
 1. Monitoring devices or external systems submit telemetry events through the ingestion API
 2. The API validates and queues telemetry data in Redis
 3. Worker services asynchronously process telemetry events
 4. Processing results and alert metadata are stored in PostgreSQL
-5. Prometheus and Loki collect operational metrics and logs
-6. Grafana dashboards provide observability into platform health and workload processing
+5. Prometheus collects application and database metrics
+6. Grafana visualizes collected metrics
 
 ## Operational Goals
 - rolling deployments
@@ -208,6 +221,7 @@ Planned:
 - declarative deployments
 
 ## Core Components
+
 ### Infrastructure
 Terraform
 VPC networking
@@ -228,7 +242,9 @@ Container image deployment
 Rollback workflows
 ### Observability
 Prometheus
-Grafana
+PostgreSQL Exporter
+ServiceMonitor
+Grafana (deployment ready)
 Loki
 Centralized logging
 Alerting
