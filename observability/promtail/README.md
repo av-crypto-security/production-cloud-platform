@@ -1,12 +1,3 @@
-Helm values for Promtail deployment.
-
-```bash
-helm repo add grafana https://grafana.github.io/helm-charts
-
-helm repo update
-
-helm search repo grafana/promtail
-
-helm show values grafana/promtail \
-> observability/promtail/values.yaml
-```
+Promtail collects container logs from Kubernetes nodes and forwards them to Loki.
+In the local development environment, Promtail is deployed as part of the official Grafana loki-stack Helm chart.
+Production deployments use a dedicated Helm release or an alternative log collection solution.

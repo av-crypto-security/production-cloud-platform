@@ -1,12 +1,7 @@
 Helm values for Loki deployment.
+Local development uses the official grafana/loki-stack Helm chart.
+Only Loki and Promtail are enabled.
+Grafana and Prometheus are provided by kube-prometheus-stack.
 
-```bash
-helm repo add grafana https://grafana.github.io/helm-charts
+For production (Terraform/AWS), the project will migrate to the modern grafana/loki chart with object storage.
 
-helm repo update
-
-helm search repo grafana/loki
-
-helm show values grafana/loki \
-> observability/loki/values.yaml
-```
