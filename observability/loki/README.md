@@ -1,7 +1,5 @@
-Helm values for Loki deployment.
-Local development uses the official grafana/loki-stack Helm chart.
-Only Loki and Promtail are enabled.
-Grafana and Prometheus are provided by kube-prometheus-stack.
+Local development uses the official Grafana Loki Helm chart in Monolithic deployment mode with filesystem storage.
 
-For production (Terraform/AWS), the project will migrate to the modern grafana/loki chart with object storage.
+This configuration is intended for local Kubernetes clusters (Kind).
 
+Production deployment will use the distributed Loki architecture with object storage (Amazon S3) provisioned by Terraform.
