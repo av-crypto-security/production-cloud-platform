@@ -1,5 +1,5 @@
-Local development uses the official Grafana Loki Helm chart in Monolithic deployment mode with filesystem storage.
+Grafana Loki is deployed using official Helm chart in Monilithic mode.
 
-This configuration is intended for local Kubernetes clusters (Kind).
+For local Kubernetes development the deployment uses embedded MiniIO as S3-compatible object storage.
 
-Production deployment will use the distributed Loki architecture with object storage (Amazon S3) provisioned by Terraform.
+Production deployment is planned to use external object storage (Amazon S3 or compatible) provisioned with Terraform.
