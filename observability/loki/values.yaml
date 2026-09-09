@@ -36,6 +36,16 @@ minio:
 singleBinary:
   replicas: 1
 
+
+chunksCache:
+  allocatedMemory: 512
+  allocatedCPU: 100m
+
+resultsCache:
+  allocatedMemory: 256
+  allocatedCPU: 100m
+
+
 backend:
   replicas: 0
 
