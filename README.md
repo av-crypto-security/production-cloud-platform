@@ -295,3 +295,32 @@ PostgreSQL
 Redis
 ## License
 MIT License
+
+## Disaster Recovery
+
+The repository includes a tested disaster-recovery bootstrap script:
+
+```bash
+./bootstrap-disaster-recovery.sh
+```
+For a clean recovery, the script is recommended to be placed outside
+the repository, for example:
+```bash
+$HOME/bootstrap-disaster-recovery.sh
+```
+The script clones the repository into:
+```bash
+$HOME/production-cloud-platform/
+```
+This keeps the bootstrap script outside the repository during a
+from-scratch recovery.
+
+The recovery process provisions:
+
+Docker -> kubectl -> Kind -> Helm -> ArgoCD
+-> Prometheus / Grafana -> Loki -> Promtail
+-> Production Cloud Platform
+
+After deployment, the script waits for the platform workloads to
+become ready and runs automated smoke tests for Kubernetes, ArgoCD,
+application metrics, PostgreSQL exporter, Prometheus targets and Loki.
