@@ -1,0 +1,88 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: production-cloud-platform-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: production-cloud-platform.rules
+      rules:
+
+        - alert: PlatformPodNotReady
+          expr: |
+            kube_pod_status_ready{
+              namespace="{{ .Release.Namespace }}",
+              condition="true"
+            } == 0
+          for: 2m
+          labels:
+            severity: warning
+            category: platform
+          annotations:
+            summary: "Production Cloud Platform pod is not ready"
+            description: "Pod {{ "{{ $labels.namespace }}" }}/{{ "{{ $labels.pod }}" }} has not been ready for more than 2 minutes." 
+
+        - alert: PlatformTargetDown
+          expr: |
+            up{
+              namespace="{{ .Release.Namespace }}"
+            } == 0
+          for: 2m
+          labels:
+            severity: critical
+            category: platform
+          annotations:
+            summary: "Production Cloud Platform monitoring target is down"
+            description: "Prometheus target {{ "{{ $labels.job }}" }} in {{ "{{ $labels.namespace }}" }} has been down for more than 2 minutes."
+
+        - alert: PlatformHighCPU
+          expr: |
+            sum by (namespace, pod) (
+              rate(container_cpu_usage_seconds_total{
+                namespace="{{ .Release.Namespace }}",
+                container!="",
+                image!=""
+              }[5m])
+            )
+            /
+            sum by (namespace, pod) (
+              kube_pod_container_resource_limits{
+                namespace="{{ .Release.Namespace }}",
+                resource="cpu"
+              }
+            )
+            > 0.80
+          for: 5m
+          labels:
+            severity: warning
+            category: platform
+          annotations:
+            summary: "Production Cloud Platform pod has high CPU usage"
+            description: "Pod {{ "{{ $labels.namespace }}" }}/{{ "{{ $labels.pod }}" }} has exceeded 80% of its CPU limit for more than 5 minutes."
+
+        - alert: PlatformHighMemory
+          expr: |
+            sum by (namespace, pod) (
+              container_memory_working_set_bytes{
+                namespace="{{ .Release.Namespace }}",
+                container!="",
+                image!=""
+              }
+            )
+            /
+            sum by (namespace, pod) (
+              kube_pod_container_resource_limits{
+                namespace="{{ .Release.Namespace }}",
+                resource="memory"
+              }
+            )
+            > 0.80
+          for: 5m
+          labels:
+            severity: warning
+            category: platform
+          annotations:
+            summary: "Production Cloud Platform pod has high memory usage"
+            description: "Pod {{ "{{ $labels.namespace }}" }}/{{ "{{ $labels.pod }}" }} has exceeded 80% of its memory limit for more than 5 minutes."
