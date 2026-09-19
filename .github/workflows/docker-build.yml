@@ -60,5 +60,5 @@ jobs:
           context: ./observability/alertmanager/webhook-receiver
           push: true
           tags: |
-            ghcr.io/av-crypto-security/alert-webhook-receiver:v1.0.0
+            ghcr.io/av-crypto-security/alert-webhook-receiver:v1.0.1
             ghcr.io/av-crypto-security/alert-webhook-receiver:latest
