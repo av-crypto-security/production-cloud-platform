@@ -15,6 +15,8 @@ spec:
       labels:
         app: alert-webhook-receiver
     spec:
+      securityContext:
+        fsGroup: 10001
       containers:
         - name: alert-webhook-receiver
           image: ghcr.io/av-crypto-security/alert-webhook-receiver:v1.0.0
