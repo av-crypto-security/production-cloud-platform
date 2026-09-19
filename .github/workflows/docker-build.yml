@@ -53,3 +53,12 @@ jobs:
           tags: |
             ghcr.io/av-crypto-security/simulator:v1.0.0
             ghcr.io/av-crypto-security/simulator:latest
+
+      - name: Build and push alert-webhook-receiver
+        uses: docker/build-push-action@v6
+        with:
+          context: ./observability/alertmanager/webhook-receiver
+          push: true
+          tags: |
+            ghcr.io/av-crypto-security/alert-webhook-receiver:v1.0.0
+            ghcr.io/av-crypto-security/alert-webhook-receiver:latest
