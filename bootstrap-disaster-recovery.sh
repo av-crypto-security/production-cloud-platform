@@ -474,20 +474,13 @@ echo
 echo "Installing kube-prometheus-stack..."
 
 
-if helm status monitoring \
-    -n "$MONITORING_NAMESPACE" >/dev/null 2>&1; then
-
-    echo "Prometheus stack already installed."
-
-else
-
-    helm install monitoring \
-        prometheus-community/kube-prometheus-stack \
-        -n "$MONITORING_NAMESPACE" \
-        --wait \
-        --timeout 10m
-
-fi
+helm upgrade --install monitoring \
+    prometheus-community/kube-prometheus-stack \
+    --version 90.0.0 \
+    -n "$MONITORING_NAMESPACE" \
+    -f observability/alertmanager/values.yaml \
+    --wait \
+    --timeout 10m
 
 
 echo
