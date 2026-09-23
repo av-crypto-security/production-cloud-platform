@@ -30,6 +30,13 @@ Recently implemented:
 - Prometheus monitoring
 - ServiceMonitor integration
 - PostgreSQL Exporter
+- Grafana dashboards
+- Loki centralized logging
+- Promtail log collection
+- Alertmanager alert routing
+- Custom PrometheusRule alerts
+- AlertmanagerConfig-based webhook delivery
+- Disaster-recovery bootstrap and smoke tests
 ---
 
 Recent focus areas include:
@@ -41,9 +48,6 @@ Some components and documentation are currently being updated and refactored to 
 
 Planned enhancements include:
 
-* Grafana dashboards
-* Loki log aggregation
-* Alertmanager
 * RabbitMQ integration
 * Terraform infrastructure provisioning
 
@@ -94,7 +98,62 @@ Developer
     |
 Git Push -> GitHub Repository -> GitHub Actions -> GHCR -> ArgoCD (GitOps) -> Helm Chart -> Kubernetes Cluster
 ```
- 
+## Alerting
+
+Alerting is implemented using Prometheus and Alertmanager.
+
+Prometheus evaluates custom `PrometheusRule` resources for platform
+health conditions. Alerts are routed through Alertmanager using an
+`AlertmanagerConfig` resource.
+
+The platform webhook route is selected by the `category=platform`
+matcher and delivers notifications to an in-cluster HTTP webhook
+receiver.
+
+The demonstrated notification lifecycle is:
+
+```text
+INACTIVE -> PENDING -> FIRING -> RESOLVED
+```
+The end-to-end delivery flow is:
+```text
+Kubernetes workload
+        |
+        v
+Prometheus
+        |
+        v
+PrometheusRule
+        |
+        v
+Alertmanager
+        |
+        v
+AlertmanagerConfig
+        |
+        v
+HTTP webhook receiver
+        |
+        v
+Container logs
+```
+The webhook receiver is implemented as a small Flask application
+running behind Gunicorn.
+
+The receiver logs notification events including:
+
+alert status
+alert name
+severity
+namespace
+
+The demonstrated controlled incident uses a temporary Kubernetes
+Deployment with a failing readiness probe to trigger
+PlatformPodNotReady.
+
+Alertmanager is configured to send both firing and resolved
+notifications to the webhook receiver.
+
 ## Target Production Architecture
 
 The following diagram represents the target production architecture that is being implemented incrementally.
@@ -187,12 +246,18 @@ Implemented:
 - Prometheus monitoring
 - ServiceMonitor integration
 - PostgreSQL Exporter
+- Grafana dashboards
+- Loki centralized logging
+- Promtail log collection
+- Alertmanager
+- Custom PrometheusRule alerts
+- AlertmanagerConfig webhook routing
+- End-to-end firing/resolved notification validation
+- Disaster-recovery bootstrap script
+- Automated recovery smoke tests
 
 Planned:
 
-- Grafana dashboards
-- Loki centralized logging
-- Alertmanager
 - RabbitMQ
 - Alembic
 - HPA
@@ -203,7 +268,7 @@ Planned:
 
 ## Platform workflow
 1. Monitoring devices or external systems submit telemetry events through the ingestion API
-2. The API validates and queues telemetry data in Redis
+2. The API validates and queues telemetry data in Redis (planned)
 3. Worker services asynchronously process telemetry events
 4. Processing results and alert metadata are stored in PostgreSQL
 5. Prometheus collects application and database metrics
@@ -244,10 +309,13 @@ Rollback workflows
 Prometheus
 PostgreSQL Exporter
 ServiceMonitor
-Grafana (deployment ready)
+Grafana dashboards
 Loki
-Centralized logging
-Alerting
+Promtail
+Alertmanager
+PrometheusRule
+AlertmanagerConfig
+HTTP webhook notification delivery
 ### Security
 TLS
 Kubernetes secrets

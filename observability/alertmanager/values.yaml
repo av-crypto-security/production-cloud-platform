@@ -1,8 +1,8 @@
 alertmanager:
   alertmanagerSpec:
 
-    # AlertmanagerConfig objects may handle alerts
-    # independently of their namespace.
+    # AlertmanagerConfig objects in the Alertmanager namespace
+    # may process alerts originating from other namespaces.
     alertmanagerConfigMatcherStrategy:
       type: OnNamespaceExceptForAlertmanagerNamespace
 

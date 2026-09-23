@@ -471,7 +471,7 @@ kubectl apply -f -
 
 
 echo
-echo "Installing kube-prometheus-stack..."
+echo "Installing/upgrading kube-prometheus-stack..."
 
 
 helm upgrade --install monitoring \
