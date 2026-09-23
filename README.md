@@ -177,8 +177,9 @@ Additional platform capabilities such as GitOps workflows, observability, servic
                     └─────────┬───────────┘
                               ▼
                     ┌─────────────────────┐
-                    │ Redis Queue         │
-                    │ async buffering     │
+                    │ RabbitMQ            │
+                    │ async messaging     |
+                    │ buffering           |
                     └─────────┬───────────┘
                               ▼
                     ┌─────────────────────┐
@@ -268,8 +269,8 @@ Planned:
 
 ## Platform workflow
 1. Monitoring devices or external systems submit telemetry events through the ingestion API
-2. The API validates and queues telemetry data in Redis (planned)
-3. Worker services asynchronously process telemetry events
+2. The API validates incoming telemetry data
+3. Telemetry data is processed by the telemetry worker
 4. Processing results and alert metadata are stored in PostgreSQL
 5. Prometheus collects application and database metrics
 6. Grafana visualizes collected metrics
@@ -353,14 +354,17 @@ threat model
 
 ## Technology Stack
 Kubernetes
-Terraform
 Docker
+Helm
 GitHub Actions
 ArgoCD
 Prometheus
 Grafana
+Loki
+Promtail
+Alertmanager
 PostgreSQL
-Redis
+
 ## License
 MIT License
 
