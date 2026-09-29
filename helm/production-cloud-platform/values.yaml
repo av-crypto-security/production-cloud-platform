@@ -69,7 +69,7 @@ rabbitmq:
       memory: 256Mi
     limits:
       cpu: 500m
-      memory: 512 Mi
+      memory: 512Mi
 
   metrics:
     enabled: true
