@@ -52,3 +52,24 @@ postgresExporter:
     limits:
       cpu: 200m
       memory: 128Mi
+
+rabbitmq:
+  auth:
+    username: telemetry
+    password: telemetry-rabbitmq
+
+  persistence:
+    enabled: true
+    storageClass: standard
+    size: 2Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512 Mi
+
+  metrics:
+    enabled: true
