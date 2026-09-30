@@ -23,7 +23,3 @@ version: 0.1.0
 # It is recommended to use it with quotes.
 appVersion: "1.16.0"
 
-dependencies:
-  - name: rabbitmq
-    version: 16.0.14
-    repository: oci://registry-1.docker.io/bitnamicharts
