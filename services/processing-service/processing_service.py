@@ -1,133 +1,254 @@
+import json
 import os
 import time
+
+import pika
 import psycopg2
-from prometheus_client import Counter
-from prometheus_client import start_http_server
+from prometheus_client import Counter, start_http_server
+
+
+POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
+RABBITMQ_USER = os.getenv("RABBITMQ_USER")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD")
+
+RABBITMQ_EXCHANGE = os.getenv(
+    "RABBITMQ_EXCHANGE",
+    "telemetry"
+)
+RABBITMQ_QUEUE = os.getenv(
+    "RABBITMQ_QUEUE",
+    "telemetry.measurements"
+)
+RABBITMQ_ROUTING_KEY = os.getenv(
+    "RABBITMQ_ROUTING_KEY",
+    "measurement"
+)
+
 
 while True:
-	try:
-		conn = psycopg2.connect(
-			host=os.getenv("POSTGRES_HOST"),
-			database=os.getenv("POSTGRES_DB"),
-			user=os.getenv("POSTGRES_USER"),
-			password=os.getenv("POSTGRES_PASSWORD")
-		)
-		break
-	except Exception:
-		print("Waiting for PostgreSQL...")
-		time.sleep(5)
+    try:
+        conn = psycopg2.connect(
+            host=POSTGRES_HOST,
+            database=POSTGRES_DB,
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD
+        )
+        break
 
-cursor = conn.cursor()
+    except Exception as exc:
+        print(
+            f"Waiting for PostgreSQL: {exc}",
+            flush=True
+        )
+        time.sleep(5)
+
 
 start_http_server(8001)
 
-processed_measurements = Counter (
-	"processed_measurements_total",
-	"Total processed measurements"
+processed_measurements = Counter(
+    "processed_measurements_total",
+    "Total processed measurements"
 )
 
-while True:
-	
-	cursor.execute(
-		"""
-		SELECT
-			id,
-			bridge_id,
-			timestamp,
-			temperature,
-			humidity,
-			vibration,
-			tilt
-		FROM measurements
-		WHERE processed = FALSE
-		"""
-	)
-	measurements = cursor.fetchall()
+rabbitmq_messages_processed = Counter(
+    "rabbitmq_messages_processed_total",
+    "Total RabbitMQ messages successfully processed"
+)
 
-	for measurement in measurements:
-		measurement_id = measurement[0]
-		bridge_id = measurement[1]
-		timestamp = measurement[2]
-		temperature = measurement[3]
-		humidity = measurement[4]
-		vibration = measurement[5]
-		tilt = measurement[6]
+rabbitmq_processing_failures = Counter(
+    "rabbitmq_processing_failures_total",
+    "Total RabbitMQ message processing failures"
+)
 
-		alerts = []
 
-		if temperature > 80:
-			alerts.append(
-				(
-					"HIGH_TEMPERATURE",
-					"critical",
-					f"Temperature={temperature}"
-				)
-			)
+def create_rabbitmq_connection():
+    credentials = pika.PlainCredentials(
+        RABBITMQ_USER,
+        RABBITMQ_PASSWORD
+    )
 
-		if humidity > 95:
-			alerts.append(
-				(
-					"HIGH_HUMIDITY",
-					"warning",
-					f"Humidity={humidity}"
-				)
-			)
+    parameters = pika.ConnectionParameters(
+        host=RABBITMQ_HOST,
+        port=RABBITMQ_PORT,
+        credentials=credentials
+    )
 
-		if vibration > 2:
-			alerts.append(
-				(
-					"HIGH_VIBRATION",
-					"critical",
-					f"Vibration={vibration}"
-				)
-			)
+    return pika.BlockingConnection(parameters)
 
-		if tilt > 5:
-			alerts.append(
-				(
-					"HIGH_TILT",
-					"critical",
-					f"Tilt={tilt}"
-				)
-			)
 
-		for alert_type, severity, message in alerts:
-			cursor.execute(
-				"""
-				INSERT INTO alerts
-				(
-					bridge_id,
-					timestamp,
-					alert_type,
-					severity,
-					message
-				)
-				VALUES (%s,%s,%s,%s,%s)
-				""",
-				(
-					bridge_id,
-					timestamp,
-					alert_type,
-					severity,
-					message
-				)
-			)
-		
-		cursor.execute(
-			"""
-			UPDATE measurements
-			SET processed = TRUE
-			WHERE id = %s
-			""",
-			(measurement_id,)
-		)
-	
-	conn.commit()
+rabbitmq_connection = create_rabbitmq_connection()
+channel = rabbitmq_connection.channel()
 
-	print(
-		f"Processed {len(measurements)} measurements"
-	)
+channel.exchange_declare(
+    exchange=RABBITMQ_EXCHANGE,
+    exchange_type="direct",
+    durable=True
+)
 
-	processed_measurements.inc(len(measurements))
-	
-	time.sleep(10)
+channel.queue_declare(
+    queue=RABBITMQ_QUEUE,
+    durable=True
+)
+
+channel.queue_bind(
+    exchange=RABBITMQ_EXCHANGE,
+    queue=RABBITMQ_QUEUE,
+    routing_key=RABBITMQ_ROUTING_KEY
+)
+
+channel.basic_qos(prefetch_count=1)
+
+
+def process_measurement(measurement):
+    cursor = conn.cursor()
+
+    try:
+        bridge_id = measurement["bridge_id"]
+        timestamp = measurement["timestamp"]
+        temperature = measurement["temperature"]
+        humidity = measurement["humidity"]
+        vibration = measurement["vibration"]
+        tilt = measurement["tilt"]
+
+        alerts = []
+
+        if temperature > 80:
+            alerts.append(
+                (
+                    "HIGH_TEMPERATURE",
+                    "critical",
+                    f"Temperature={temperature}"
+                )
+            )
+
+        if humidity > 95:
+            alerts.append(
+                (
+                    "HIGH_HUMIDITY",
+                    "warning",
+                    f"Humidity={humidity}"
+                )
+            )
+
+        if vibration > 2:
+            alerts.append(
+                (
+                    "HIGH_VIBRATION",
+                    "critical",
+                    f"Vibration={vibration}"
+                )
+            )
+
+        if tilt > 5:
+            alerts.append(
+                (
+                    "HIGH_TILT",
+                    "critical",
+                    f"Tilt={tilt}"
+                )
+            )
+
+        cursor.execute(
+            """
+            INSERT INTO measurements
+            (
+                bridge_id,
+                timestamp,
+                temperature,
+                humidity,
+                vibration,
+                tilt,
+                processed
+            )
+            VALUES (%s,%s,%s,%s,%s,%s,TRUE)
+            """,
+            (
+                bridge_id,
+                timestamp,
+                temperature,
+                humidity,
+                vibration,
+                tilt
+            )
+        )
+
+        for alert_type, severity, message in alerts:
+            cursor.execute(
+                """
+                INSERT INTO alerts
+                (
+                    bridge_id,
+                    timestamp,
+                    alert_type,
+                    severity,
+                    message
+                )
+                VALUES (%s,%s,%s,%s,%s)
+                """,
+                (
+                    bridge_id,
+                    timestamp,
+                    alert_type,
+                    severity,
+                    message
+                )
+            )
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+
+
+def callback(ch, method, properties, body):
+    try:
+        measurement = json.loads(body)
+
+        process_measurement(measurement)
+
+        processed_measurements.inc()
+        rabbitmq_messages_processed.inc()
+
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
+        print(
+            "Processed RabbitMQ measurement",
+            flush=True
+        )
+
+    except Exception as exc:
+        rabbitmq_processing_failures.inc()
+
+        print(
+            f"Processing failed: {exc}",
+            flush=True
+        )
+
+        ch.basic_nack(
+            delivery_tag=method.delivery_tag,
+            requeue=True
+        )
+
+
+channel.basic_consume(
+    queue=RABBITMQ_QUEUE,
+    on_message_callback=callback,
+    auto_ack=False
+)
+
+print(
+    "Processing worker waiting for RabbitMQ messages",
+    flush=True
+)
+
+channel.start_consuming()

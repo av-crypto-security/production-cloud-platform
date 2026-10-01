@@ -34,26 +34,41 @@ spec:
           image: "{{ .Values.ingestion.image.repository }}:{{ .Values.ingestion.image.tag }}"
           imagePullPolicy: IfNotPresent
           env:
-            - name: POSTGRES_HOST
+            - name: RABBITMQ_HOST
               valueFrom:
                 configMapKeyRef:
                   name: telemetry-config
-                  key: POSTGRES_HOST
-            - name: POSTGRES_DB
+                  key: RABBITMQ_HOST
+            - name: RABBITMQ_PORT
               valueFrom:
                 configMapKeyRef:
                   name: telemetry-config
-                  key: POSTGRES_DB
-            - name: POSTGRES_USER
+                  key: RABBITMQ_PORT
+            - name: RABBITMQ_EXCHANGE
+              valueFrom:
+                configMapKeyRef:
+                  name: telemetry-config
+                  key: RABBITMQ_EXCHANGE
+            - name: RABBITMQ_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: telemetry-config
+                  key: RABBITMQ_QUEUE
+            - name: RABBITMQ_ROUTING_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: telemetry-config
+                  key: RABBITMQ_ROUTING_KEY
+            - name: RABBITMQ_USER
               valueFrom:
                 secretKeyRef:
-                  name: telemetry-secret
-                  key: POSTGRES_USER
-            - name: POSTGRES_PASSWORD
+                  name: rabbitmq-secret
+                  key: RABBITMQ_USER
+            - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: telemetry-secret
-                  key: POSTGRES_PASSWORD
+                  name: rabbitmq-secret
+                  key: RABBITMQ_PASSWORD
           ports:
             - containerPort: 8000
               name: http

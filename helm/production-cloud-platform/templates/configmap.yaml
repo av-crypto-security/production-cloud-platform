@@ -6,3 +6,9 @@ metadata:
 data:
   POSTGRES_HOST: {{ .Values.postgres.host | quote }}
   POSTGRES_DB: {{ .Values.postgres.database | quote }}
+
+  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_EXCHANGE: "telemetry"
+  RABBITMQ_QUEUE: "telemetry.measurements"
+  RABBITMQ_ROUTING_KEY: "measurement"
