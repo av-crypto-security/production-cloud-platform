@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 import pika
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -11,17 +11,12 @@ app = FastAPI()
 
 Instrumentator().instrument(app).expose(app)
 
-
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
 RABBITMQ_USER = os.getenv("RABBITMQ_USER")
 RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD")
 
 RABBITMQ_EXCHANGE = os.getenv("RABBITMQ_EXCHANGE", "telemetry")
-RABBITMQ_QUEUE = os.getenv(
-    "RABBITMQ_QUEUE",
-    "telemetry.measurements"
-)
 RABBITMQ_ROUTING_KEY = os.getenv(
     "RABBITMQ_ROUTING_KEY",
     "measurement"
@@ -46,7 +41,9 @@ def create_rabbitmq_connection():
     parameters = pika.ConnectionParameters(
         host=RABBITMQ_HOST,
         port=RABBITMQ_PORT,
-        credentials=credentials
+        credentials=credentials,
+        connection_attempts=3,
+        retry_delay=2
     )
 
     return pika.BlockingConnection(parameters)
@@ -75,44 +72,36 @@ def get_rabbitmq_channel():
             durable=True
         )
 
-        rabbitmq_channel.queue_declare(
-            queue=RABBITMQ_QUEUE,
-            durable=True
-        )
-
-        rabbitmq_channel.queue_bind(
-            exchange=RABBITMQ_EXCHANGE,
-            queue=RABBITMQ_QUEUE,
-            routing_key=RABBITMQ_ROUTING_KEY
-        )
-
     return rabbitmq_channel
 
 
 @app.post("/measurements", status_code=202)
 def receive_measurement(data: Measurement):
+    try:
+        channel = get_rabbitmq_channel()
 
-    channel = get_rabbitmq_channel()
+        payload = data.model_dump(mode="json")
 
-    payload = data.model_dump(mode="json")
-
-    channel.basic_publish(
-        exchange=RABBITMQ_EXCHANGE,
-        routing_key=RABBITMQ_ROUTING_KEY,
-        body=json.dumps(payload),
-        properties=pika.BasicProperties(
-            delivery_mode=2,
-            content_type="application/json"
+        channel.basic_publish(
+            exchange=RABBITMQ_EXCHANGE,
+            routing_key=RABBITMQ_ROUTING_KEY,
+            body=json.dumps(payload),
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+                content_type="application/json"
+            ),
+            mandatory=True
         )
-    )
 
-    return {
-        "status": "accepted"
-    }
+        return {"status": "accepted"}
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"RabbitMQ publish failed: {exc}"
+        )
 
 
 @app.get("/health")
 def health():
-    return {
-        "status": "ok"
-    }
+    return {"status": "ok"}
