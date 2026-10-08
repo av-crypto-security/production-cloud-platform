@@ -171,6 +171,152 @@ The DLQ was verified to receive the failed message and was subsequently
 purged to restore a clean operational state.
 
 
+## Database Migrations
+
+Database schema lifecycle is managed by **Alembic**.
+
+The current migration flow is:
+
+```text
+Argo CD Sync
+     |
+     v
+PostgreSQL
+     |
+     v
+Alembic migration Job
+     |
+     v
+alembic upgrade head
+     |
+     v
+Application workloads
+```
+
+The migration environment is stored in:
+
+```text
+services/processing-service/alembic/
+```
+
+The processing-service image contains the Alembic environment and is reused by the Kubernetes migration Job.
+
+### Migration Strategy
+
+The project adopted Alembic against an existing PostgreSQL database without recreating the database or deleting the existing persistent volume.
+
+The migration history is:
+
+```text
+0001  baseline existing schema
+  |
+  v
+0002  add measurements lookup index
+```
+
+Revision `0001` describes the existing production schema and is used as the baseline for Alembic version tracking.
+
+Revision `0002` introduces the first real schema change:
+
+```text
+measurements
+    |
+    +-- (bridge_id, timestamp)
+          |
+          v
+    ix_measurements_bridge_id_timestamp
+```
+
+The index is created using PostgreSQL `CREATE INDEX CONCURRENTLY`, allowing normal table writes to continue during index creation.
+
+### Kubernetes Integration
+
+Database migrations are executed by a dedicated Kubernetes Job:
+
+```text
+PostgreSQL StatefulSet
+        |
+        | sync-wave -1
+        v
+PostgreSQL ready
+        |
+        | sync-wave 0
+        v
+Alembic migration Job
+        |
+        | sync-wave 1
+        v
+Application workloads
+```
+
+The migration Job is managed by Argo CD as a `Sync` hook and uses:
+
+```yaml
+argocd.argoproj.io/hook: Sync
+argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+```
+
+Successful migration Jobs are therefore removed after completion while the migration state remains recorded in PostgreSQL through `alembic_version`.
+
+The application containers do not execute database migrations during startup.
+
+### Migration Verification
+
+The deployed migration was verified against the live PostgreSQL database:
+
+```text
+Argo CD:
+Synced / Healthy / Succeeded
+
+Alembic:
+0002
+
+PostgreSQL:
+ix_measurements_bridge_id_timestamp
+```
+
+The existing application data was preserved during the migration.
+
+### Database Ownership
+
+Alembic is now the authoritative mechanism for database schema lifecycle.
+
+The previous PostgreSQL bootstrap script:
+
+```text
+services/postgres/init.sql
+```
+
+is retained as a historical artifact from the pre-Alembic architecture. It is no longer mounted or executed by the current PostgreSQL deployment.
+
+The current schema lifecycle is therefore:
+
+```text
+Git
+ |
+ +-- Alembic revisions
+        |
+        v
+   Argo CD Sync
+        |
+        v
+   Migration Job
+        |
+        v
+   PostgreSQL
+```
+
+
+### Legacy and Historical Artifacts
+
+Some repository files are retained for historical and reference purposes and are not part of the current deployment path.
+
+* `services/postgres/init.sql` is a legacy database bootstrap script from the pre-Alembic architecture. It is no longer mounted or executed by the current PostgreSQL deployment. Database schema lifecycle is now managed by Alembic migrations.
+* `kubernetes/base/` contains the original Kubernetes manifests used during the early/manual deployment stage of the project. The current GitOps deployment source of truth is `helm/production-cloud-platform/` and its manifests are deployed through Argo CD.
+
+These artifacts are intentionally retained to preserve the project's evolution and deployment history.
+
+
 ## Observability
 
 The platform implements application, infrastructure and database
