@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: simulator
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: {{ .Values.simulator.replicaCount }}
   selector:

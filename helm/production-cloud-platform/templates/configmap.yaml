@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: telemetry-config
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 data:
   POSTGRES_HOST: {{ .Values.postgres.host | quote }}
   POSTGRES_DB: {{ .Values.postgres.database | quote }}

@@ -19,8 +19,21 @@ services:
 
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./services/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  db-migrate:
+    build: ./services/processing-service
+
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    command: ["alembic", "upgrade", "head"]
+
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   ingestion-api:
 
@@ -45,7 +58,6 @@ services:
       postgres:
         condition: service_healthy
 
-
   processing-service:
     build: ./services/processing-service
 
@@ -56,9 +68,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
     depends_on:
-      postgres:
-        condition: service_healthy
-
+      db-migrate:
+        condition: service_completed_successfully
 
   simulator:
     build: ./services/simulator

@@ -19,6 +19,8 @@ kind: Deployment
 metadata:
   name: processing-service
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: {{ .Values.processing.replicaCount }}
   selector:

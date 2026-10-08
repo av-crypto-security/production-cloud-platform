@@ -9,7 +9,7 @@ processing:
   replicaCount: 1
   image:
     repository: ghcr.io/av-crypto-security/processing-service
-    tag: v1.3.0
+    tag: v1.4.0
 
 
 simulator:

@@ -23,38 +23,13 @@ spec:
     app: postgres
   type: ClusterIP
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgres-init-sql
-  namespace: {{ .Release.Namespace }}
-data:
-  init.sql: |
-    CREATE TABLE IF NOT EXISTS measurements (
-    	id SERIAL PRIMARY KEY,
-    	bridge_id VARCHAR(32),
-    	timestamp TIMESTAMPTZ,
-    	temperature FLOAT,
-    	humidity FLOAT,
-    	vibration FLOAT,
-    	tilt FLOAT,
-    	processed BOOLEAN DEFAULT FALSE
-    );
-
-    CREATE TABLE IF NOT EXISTS alerts (
-    	id SERIAL PRIMARY KEY,
-    	bridge_id VARCHAR(32),
-    	timestamp TIMESTAMPTZ,
-    	alert_type VARCHAR(64),
-    	severity VARCHAR(32),
-    	message TEXT
-    );
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   serviceName: postgres-service
   replicas: 1
@@ -107,13 +82,7 @@ spec:
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
-            - name: init-script
-              mountPath: /docker-entrypoint-initdb.d/init.sql
-              subPath: init.sql
       volumes:
         - name: postgres-storage
           persistentVolumeClaim:
             claimName: postgres-pvc
-        - name: init-script
-          configMap:
-            name: postgres-init-sql

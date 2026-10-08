@@ -42,7 +42,7 @@ jobs:
           context: ./services/processing-service
           push: true
           tags: |
-            ghcr.io/av-crypto-security/processing-service:v1.3.0
+            ghcr.io/av-crypto-security/processing-service:v1.4.0
             ghcr.io/av-crypto-security/processing-service:latest
 
       - name: Build and push simulator
