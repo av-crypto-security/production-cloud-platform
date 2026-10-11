@@ -10,6 +10,14 @@ spec:
     namespace: telemetry-system
     server: https://kubernetes.default.svc
 
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: processing-service
+      namespace: telemetry-system
+      jsonPointers:
+        - /spec/replicas
+
   project: default
 
   source:
@@ -20,3 +28,5 @@ spec:
   syncPolicy:
     automated:
       selfHeal: true
+    syncOptions:
+      - RespectIgnoreDifferences=true

@@ -22,7 +22,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
+  {{- if not .Values.processing.autoscaling.enabled }}
   replicas: {{ .Values.processing.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       app: processing-service

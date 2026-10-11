@@ -10,6 +10,11 @@ processing:
   image:
     repository: ghcr.io/av-crypto-security/processing-service
     tag: v1.4.0
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 50
 
 
 simulator:
