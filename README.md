@@ -317,6 +317,32 @@ Some repository files are retained for historical and reference purposes and are
 These artifacts are intentionally retained to preserve the project's evolution and deployment history.
 
 
+## Horizontal Pod Autoscaling
+
+The Processing Worker is configured with a Kubernetes HorizontalPodAutoscaler (HPA) using CPU utilization as its scaling metric.
+
+### Configuration
+
+* Target: 50% average CPU utilization relative to the container CPU request
+* Minimum replicas: 1
+* Maximum replicas: 3
+* CPU request: 100m
+* CPU limit: 500m
+* Metrics provider: Kubernetes Metrics Server
+
+Helm renders the HPA when autoscaling is enabled and omits the Deployment's explicit `spec.replicas` field. Argo CD is configured to ignore differences in that field for the `processing-service` Deployment, allowing the HPA controller to manage replica count without GitOps reconciliation fighting the autoscaler.
+
+### Validation
+
+A controlled CPU-load test was used to validate scaling behavior.
+
+* **Scale-up:** the HPA increased the desired replica count from 1 to 3 when CPU utilization exceeded the configured target.
+* **Scale-down:** after the load was removed, the HPA reduced the replica count from 3 to 2 and then back to 1.
+* **Recovery:** the Processing Worker returned to 1/1 Ready, and Argo CD remained Synced and Healthy.
+
+The test validates Kubernetes CPU-based scaling behavior. It is not a benchmark of end-to-end message-processing throughput.
+
+
 ## Observability
 
 The platform implements application, infrastructure and database
@@ -473,7 +499,7 @@ Current application images:
 
 ```
 ghcr.io/av-crypto-security/ingestion-api:v1.3.0
-ghcr.io/av-crypto-security/processing-service:v1.3.0
+ghcr.io/av-crypto-security/processing-service:v1.4.0
 ghcr.io/av-crypto-security/simulator:v1.0.0
 ghcr.io/av-crypto-security/alert-webhook-receiver:v1.0.1
 ```
@@ -592,6 +618,8 @@ Implemented Kubernetes capabilities include:
 - RabbitMQ failure-path validation
 - disaster-recovery bootstrap script
 - automated recovery smoke tests
+- Alembic database migrations
+- HPA
 
 
 ### Next engineering layers
@@ -599,8 +627,6 @@ Implemented Kubernetes capabilities include:
 The remaining platform layers are intentionally kept limited and
 focused:
 
-- Alembic database migrations
-- HPA
 - NetworkPolicy
 - External Secrets Operator
 - final platform validation and documentation
