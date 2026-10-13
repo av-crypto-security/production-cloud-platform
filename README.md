@@ -343,6 +343,40 @@ A controlled CPU-load test was used to validate scaling behavior.
 The test validates Kubernetes CPU-based scaling behavior. It is not a benchmark of end-to-end message-processing throughput.
 
 
+## Network Policies
+
+The platform uses Kubernetes NetworkPolicies to control ingress traffic to application and infrastructure Pods in the `telemetry-system` namespace.
+
+### Implemented Policies
+
+The Helm chart defines six NetworkPolicy resources:
+
+- `telemetry-ingress-default-deny` — denies ingress traffic by default for the selected application and infrastructure Pods.
+- `ingestion-api-ingress` — allows traffic from the Sensor Simulator and Prometheus.
+- `processing-service-ingress` — allows Prometheus to scrape the Processing Worker metrics endpoint.
+- `postgres-ingress` — allows PostgreSQL connections from the Processing Worker, PostgreSQL Exporter and Alembic migration Job.
+- `rabbitmq-ingress` — allows AMQP traffic from the Ingestion API and Processing Worker, plus Prometheus access to RabbitMQ metrics.
+- `postgres-exporter-ingress` — allows Prometheus to scrape PostgreSQL Exporter metrics.
+
+The policies are defined as Helm templates and deployed through Argo CD GitOps reconciliation.
+
+### Scope and Limitations
+
+The current implementation restricts ingress traffic only; egress traffic is not restricted by these policies.
+
+The RabbitMQ management endpoint is not included in the permitted ingress rules. The default-deny policy applies to the selected Pods in `telemetry-system`; it does not cover the `monitoring` namespace.
+
+These policies define permitted traffic flows but do not, by themselves, demonstrate end-to-end observability or prove that logs, metrics and alerts are successfully delivered.
+
+### Validation
+
+The NetworkPolicy resources were deployed through Argo CD, which reported the application as `Synced` and `Healthy`. The application workloads remained Ready after synchronization.
+
+Functional traffic-isolation checks were performed separately from resource deployment. The validation evidence should be interpreted according to the specific connectivity tests captured in the project screenshots.
+
+NetworkPolicy validation does not constitute end-to-end validation of Prometheus scraping, log delivery to Loki, Grafana queries, Alertmanager routing or webhook delivery.
+
+
 ## Observability
 
 The platform implements application, infrastructure and database
@@ -620,6 +654,7 @@ Implemented Kubernetes capabilities include:
 - automated recovery smoke tests
 - Alembic database migrations
 - HPA
+- NetworkPolicy
 
 
 ### Next engineering layers
@@ -627,7 +662,6 @@ Implemented Kubernetes capabilities include:
 The remaining platform layers are intentionally kept limited and
 focused:
 
-- NetworkPolicy
 - External Secrets Operator
 - final platform validation and documentation
 
