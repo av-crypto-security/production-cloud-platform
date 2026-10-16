@@ -22,7 +22,7 @@ spec:
 
           envFrom:
             - secretRef:
-                name: rabbitmq-secret
+                name: rabbitmq-secret-eso
 
           ports:
             - name: amqp

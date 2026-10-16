@@ -25,13 +25,13 @@ spec:
             - name: DATA_SOURCE_USER
               valueFrom:
                 secretKeyRef:
-                  name: telemetry-secret
+                  name: telemetry-secret-eso
                   key: POSTGRES_USER
 
             - name: DATA_SOURCE_PASS
               valueFrom:
                 secretKeyRef:
-                  name: telemetry-secret
+                  name: telemetry-secret-eso
                   key: POSTGRES_PASSWORD
 
           ports:

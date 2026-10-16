@@ -33,9 +33,6 @@ postgres:
   host: postgres-service
   database: telemetry
 
-  user: postgres
-  password: postgres
-
 
 postgresExporter:
   image:
@@ -65,10 +62,6 @@ rabbitmq:
     pullPolicy: IfNotPresent
 
   replicaCount: 1
-
-  auth:
-    username: telemetry
-    password: telemetry-rabbitmq
 
   persistence:
     storageClass: standard

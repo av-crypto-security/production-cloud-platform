@@ -38,10 +38,10 @@ spec:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: telemetry-secret
+                  name: telemetry-secret-eso
                   key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: telemetry-secret
+                  name: telemetry-secret-eso
                   key: POSTGRES_PASSWORD

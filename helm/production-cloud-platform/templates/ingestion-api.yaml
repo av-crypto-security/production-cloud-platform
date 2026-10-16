@@ -64,12 +64,12 @@ spec:
             - name: RABBITMQ_USER
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-secret
+                  name: rabbitmq-secret-eso
                   key: RABBITMQ_USER
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-secret
+                  name: rabbitmq-secret-eso
                   key: RABBITMQ_PASSWORD
           ports:
             - containerPort: 8000
