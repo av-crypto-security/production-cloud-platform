@@ -1,0 +1,10 @@
+minio:
+  image:
+    repository: ghcr.io/av-crypto-security/minio-recovery
+    tag: RELEASE.2024-12-18T13-15-44Z
+    pullPolicy: IfNotPresent
+
+  mcImage:
+    repository: ghcr.io/av-crypto-security/mc-recovery
+    tag: RELEASE.2024-11-21T17-21-54Z
+    pullPolicy: IfNotPresent

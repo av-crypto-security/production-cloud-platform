@@ -744,35 +744,28 @@ echo
 echo "Adding Grafana Community Helm repository..."
 
 helm repo add grafana-community \
-    https://grafana-community.github.io/helm-charts
+    https://grafana-community.github.io/helm-charts \
+    --force-update
 
 helm repo update
 
 
 echo
-echo "Installing Loki ${LOKI_VERSION}..."
+echo "Installing/upgrading Loki ${LOKI_VERSION}..."
 
 
-if helm status loki \
-    -n "$MONITORING_NAMESPACE" >/dev/null 2>&1; then
-
-    echo "Loki already installed."
-
-else
-
-    helm install loki \
-        "$LOKI_CHART" \
-        --version "$LOKI_VERSION" \
-        -n "$MONITORING_NAMESPACE" \
-        -f "$REPO_DIR/observability/loki/values.yaml" \
-        --wait \
-        --timeout 10m
-
-fi
+helm upgrade --install loki \
+    "$LOKI_CHART" \
+    --version "$LOKI_VERSION" \
+    -n "$MONITORING_NAMESPACE" \
+    -f "$REPO_DIR/observability/loki/values.yaml" \
+    -f "$REPO_DIR/recovery/minio/loki-minio-values.yaml" \
+    --wait \
+    --timeout 10m
 
 
 echo
-echo "Loki installed."
+echo "Loki installation/upgrade completed."
 echo
 
 
