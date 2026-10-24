@@ -3,6 +3,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
 spec:
   accessModes:
     - ReadWriteOnce
@@ -15,6 +17,8 @@ kind: Service
 metadata:
   name: postgres-service
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
 spec:
   ports:
     - port: 5432
