@@ -120,7 +120,7 @@ prepare_source_secrets() {
         -n "$secret_namespace" >/dev/null 2>&1; then
 
         printf '%s' 'telemetry' > "$TEMP_CREDENTIAL_DIR/POSTGRES_USER"
-        openssl rand -hex 32 > "$TEMP_CREDENTIAL_DIR/POSTGRES_PASSWORD"
+        openssl rand -hex 32 | tr -d '\n' > "$TEMP_CREDENTIAL_DIR/POSTGRES_PASSWORD"
         chmod 600 "$TEMP_CREDENTIAL_DIR/POSTGRES_USER" \
             "$TEMP_CREDENTIAL_DIR/POSTGRES_PASSWORD"
 
@@ -152,7 +152,7 @@ prepare_source_secrets() {
         -n "$secret_namespace" >/dev/null 2>&1; then
 
         printf '%s' 'telemetry' > "$TEMP_CREDENTIAL_DIR/RABBITMQ_DEFAULT_USER"
-        openssl rand -hex 32 > "$TEMP_CREDENTIAL_DIR/RABBITMQ_DEFAULT_PASS"
+        openssl rand -hex 32 | tr -d '\n' > "$TEMP_CREDENTIAL_DIR/RABBITMQ_DEFAULT_PASS"
 
         cp "$TEMP_CREDENTIAL_DIR/RABBITMQ_DEFAULT_USER" \
             "$TEMP_CREDENTIAL_DIR/RABBITMQ_USER"
