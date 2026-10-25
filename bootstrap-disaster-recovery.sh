@@ -1357,13 +1357,25 @@ fi
 kubectl exec -n "$TELEMETRY_NAMESPACE" "$RABBITMQ_POD" -- \
     rabbitmq-diagnostics -q ping
 
-kubectl exec -n "$TELEMETRY_NAMESPACE" "$RABBITMQ_POD" -- \
-    rabbitmqctl list_exchanges name |
-    grep -Fxq "telemetry"
+EXCHANGES="$(
+    kubectl exec -n "$TELEMETRY_NAMESPACE" "$RABBITMQ_POD" -- \
+        rabbitmqctl list_exchanges name
+)"
 
-kubectl exec -n "$TELEMETRY_NAMESPACE" "$RABBITMQ_POD" -- \
-    rabbitmqctl list_queues name |
-    grep -Fxq "telemetry.measurements"
+if ! printf '%s\n' "$EXCHANGES" | grep -Fx "telemetry" >/dev/null; then
+    echo "ERROR: RabbitMQ exchange 'telemetry' not found." >&2
+    exit 1
+fi
+
+QUEUES="$(
+    kubectl exec -n "$TELEMETRY_NAMESPACE" "$RABBITMQ_POD" -- \
+        rabbitmqctl list_queues name
+)"
+
+if ! printf '%s\n' "$QUEUES" | grep -Fx "telemetry.measurements" >/dev/null; then
+    echo "ERROR: RabbitMQ queue 'telemetry.measurements' not found." >&2
+    exit 1
+fi
 
 echo "RabbitMQ broker, exchange and queue verified."
 
