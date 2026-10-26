@@ -141,14 +141,15 @@ The platform uses at-least-once delivery semantics, not exactly-once
 processing.
 If a worker fails after a successful PostgreSQL transaction but before
 the RabbitMQ acknowledgement, RabbitMQ may redeliver the message.
-Full idempotent event processing is intentionally deferred to the
-database migration layer.
+The current implementation provides at-least-once delivery semantics,
+but does not guarantee exactly-once processing or full application-level idempotency.
+Database constraints and an explicit idempotency strategy would be
+separate future enhancements.
 
 ### Failure validation
 
 The RabbitMQ failure path has been validated using an intentionally
 malformed message.
-
 The demonstrated flow is:
 
 ```text
@@ -174,7 +175,6 @@ purged to restore a clean operational state.
 ## Database Migrations
 
 Database schema lifecycle is managed by **Alembic**.
-
 The current migration flow is:
 
 ```text
@@ -199,12 +199,13 @@ The migration environment is stored in:
 services/processing-service/alembic/
 ```
 
-The processing-service image contains the Alembic environment and is reused by the Kubernetes migration Job.
+The processing-service image contains the Alembic environment and is reused
+by the Kubernetes migration Job.
 
 ### Migration Strategy
 
-The project adopted Alembic against an existing PostgreSQL database without recreating the database or deleting the existing persistent volume.
-
+The project adopted Alembic against an existing PostgreSQL database
+without recreating the database or deleting the existing persistent volume.
 The migration history is:
 
 ```text
@@ -214,8 +215,8 @@ The migration history is:
 0002  add measurements lookup index
 ```
 
-Revision `0001` describes the existing production schema and is used as the baseline for Alembic version tracking.
-
+Revision `0001` describes the existing production schema and is used
+as the baseline for Alembic version tracking.
 Revision `0002` introduces the first real schema change:
 
 ```text
@@ -227,7 +228,8 @@ measurements
     ix_measurements_bridge_id_timestamp
 ```
 
-The index is created using PostgreSQL `CREATE INDEX CONCURRENTLY`, allowing normal table writes to continue during index creation.
+The index is created using PostgreSQL `CREATE INDEX CONCURRENTLY`,
+allowing normal table writes to continue during index creation.
 
 ### Kubernetes Integration
 
@@ -256,8 +258,8 @@ argocd.argoproj.io/hook: Sync
 argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 ```
 
-Successful migration Jobs are therefore removed after completion while the migration state remains recorded in PostgreSQL through `alembic_version`.
-
+Successful migration Jobs are therefore removed after completion while
+the migration state remains recorded in PostgreSQL through `alembic_version`.
 The application containers do not execute database migrations during startup.
 
 ### Migration Verification
@@ -280,15 +282,14 @@ The existing application data was preserved during the migration.
 ### Database Ownership
 
 Alembic is now the authoritative mechanism for database schema lifecycle.
-
 The previous PostgreSQL bootstrap script:
 
 ```text
 services/postgres/init.sql
 ```
 
-is retained as a historical artifact from the pre-Alembic architecture. It is no longer mounted or executed by the current PostgreSQL deployment.
-
+is retained as a historical artifact from the pre-Alembic architecture.
+It is no longer mounted or executed by the current PostgreSQL deployment.
 The current schema lifecycle is therefore:
 
 ```text
@@ -309,17 +310,26 @@ Git
 
 ### Legacy and Historical Artifacts
 
-Some repository files are retained for historical and reference purposes and are not part of the current deployment path.
+Some repository files are retained for historical and reference purposes
+and are not part of the current deployment path.
 
-* `services/postgres/init.sql` is a legacy database bootstrap script from the pre-Alembic architecture. It is no longer mounted or executed by the current PostgreSQL deployment. Database schema lifecycle is now managed by Alembic migrations.
-* `kubernetes/base/` contains the original Kubernetes manifests used during the early/manual deployment stage of the project. The current GitOps deployment source of truth is `helm/production-cloud-platform/` and its manifests are deployed through Argo CD.
+* `services/postgres/init.sql` is a legacy database bootstrap script
+from the pre-Alembic architecture.
+It is no longer mounted or executed by the current PostgreSQL deployment.
+Database schema lifecycle is now managed by Alembic migrations.
+* `kubernetes/base/` contains the original Kubernetes manifests used
+during the early/manual deployment stage of the project.
+The current GitOps deployment source of truth is `helm/production-cloud-platform/`
+and its manifests are deployed through Argo CD.
 
-These artifacts are intentionally retained to preserve the project's evolution and deployment history.
+These artifacts are intentionally retained to preserve the project's evolution
+and deployment history.
 
 
 ## Horizontal Pod Autoscaling
 
-The Processing Worker is configured with a Kubernetes HorizontalPodAutoscaler (HPA) using CPU utilization as its scaling metric.
+The Processing Worker is configured with a Kubernetes HorizontalPodAutoscaler (HPA)
+using CPU utilization as its scaling metric.
 
 ### Configuration
 
@@ -330,22 +340,32 @@ The Processing Worker is configured with a Kubernetes HorizontalPodAutoscaler (H
 * CPU limit: 500m
 * Metrics provider: Kubernetes Metrics Server
 
-Helm renders the HPA when autoscaling is enabled and omits the Deployment's explicit `spec.replicas` field. Argo CD is configured to ignore differences in that field for the `processing-service` Deployment, allowing the HPA controller to manage replica count without GitOps reconciliation fighting the autoscaler.
+Helm renders the HPA when autoscaling is enabled and omits
+the Deployment's explicit `spec.replicas` field.
+Argo CD is configured to ignore differences in that field
+for the `processing-service` Deployment, allowing the HPA controller
+to manage replica count without GitOps reconciliation fighting the autoscaler.
 
 ### Validation
 
 A controlled CPU-load test was used to validate scaling behavior.
 
-* **Scale-up:** the HPA increased the desired replica count from 1 to 3 when CPU utilization exceeded the configured target.
-* **Scale-down:** after the load was removed, the HPA reduced the replica count from 3 to 2 and then back to 1.
-* **Recovery:** the Processing Worker returned to 1/1 Ready, and Argo CD remained Synced and Healthy.
+* **Scale-up:** the HPA increased the desired replica count from 1 to 3
+when CPU utilization exceeded the configured target.
+* **Scale-down:** after the load was removed, the HPA reduced the replica count
+from 3 to 2 and then back to 1.
+* **Recovery:** the Processing Worker returned to 1/1 Ready,
+and Argo CD remained Synced and Healthy.
 
-The test validates Kubernetes CPU-based scaling behavior. It is not a benchmark of end-to-end message-processing throughput.
+The test validates Kubernetes CPU-based scaling behavior.
+It is not a benchmark of end-to-end message-processing throughput.
 
 
 ## External Secrets Operator
 
-External Secrets Operator (ESO) manages the synchronization of application credentials from Kubernetes Secrets provisioned outside the Git repository.
+External Secrets Operator (ESO) manages the synchronization
+of application credentials from Kubernetes Secrets provisioned outside
+the Git repository.
 
 ### Architecture
 
@@ -380,13 +400,16 @@ The current Helm chart defines:
 - `ExternalSecret/telemetry-credentials`, synchronized to `telemetry-secret-eso`.
 - `ExternalSecret/rabbitmq-credentials`, synchronized to `rabbitmq-secret-eso`.
 - A dedicated ServiceAccount, `eso-kubernetes-reader`, for source access.
-- A Role and RoleBinding scoped to the `secret-source` namespace for reading source Secrets.
+- A Role and RoleBinding scoped to the `secret-source` namespace
+for reading source Secrets.
 
-The source Secrets are provisioned outside Git and are not generated by the active Helm chart. Their values must not be committed to the repository.
-
-The source credentials are synchronized into target Secrets in `telemetry-system`. Application workloads reference these ESO-managed Secrets through Kubernetes `secretKeyRef` entries.
-
-The existing application environment variable names remain unchanged. Only the referenced Kubernetes Secret names have changed.
+The source Secrets are provisioned outside Git and are not generated
+by the active Helm chart. Their values must not be committed to the repository.
+The source credentials are synchronized into target Secrets in `telemetry-system`.
+Application workloads reference these ESO-managed Secrets
+through Kubernetes `secretKeyRef` entries.
+The existing application environment variable names remain unchanged.
+Only the referenced Kubernetes Secret names have changed.
 
 ### Validation
 
@@ -396,53 +419,76 @@ The integration was validated against the running Kind cluster:
 - `SecretStore/kubernetes-source` reported `Ready=True`.
 - Both ExternalSecrets reported `SecretSynced` and `Ready=True`.
 - The target Secrets contained the expected keys.
-- Source and target credential values were compared without printing the values; all six key comparisons matched.
-- The application Deployments and PostgreSQL/RabbitMQ StatefulSets were Ready after the switch.
-- PostgreSQL measurement count increased from 27,948 to 27,951 during runtime validation.
+- Source and target credential values were compared without printing the values;
+all six key comparisons matched.
+- The application Deployments and PostgreSQL/RabbitMQ StatefulSets were Ready
+after the switch.
+- PostgreSQL measurement count increased from 27,948 to 27,951
+during runtime validation.
 
 ### Security Scope
 
-Source Secret access is restricted through Kubernetes RBAC to the dedicated `eso-kubernetes-reader` ServiceAccount and the `secret-source` namespace.
-
-The Role grants `get`, `list` and `watch` permissions over Secrets in that namespace. It is namespace-scoped, not restricted to individual Secret names.
-
-A dedicated NetworkPolicy for `secret-source` is not currently implemented. Network isolation and broader cluster access controls remain separate security considerations.
-
-The ESO integration improves credential delivery and removes the active chart's direct generation of application Secrets from Helm values. It does not, by itself, make the local cluster a production-hardened environment.
+Source Secret access is restricted through Kubernetes RBAC
+to the dedicated `eso-kubernetes-reader` ServiceAccount
+and the `secret-source` namespace.
+The Role grants `get`, `list` and `watch` permissions over Secrets
+in that namespace.
+It is namespace-scoped, not restricted to individual Secret names.
+A dedicated NetworkPolicy for `secret-source` is not currently implemented.
+Network isolation and broader cluster access controls remain
+separate security considerations.
+The ESO integration improves credential delivery and removes
+the active chart's direct generation of application Secrets from Helm values.
+It does not, by itself, make the local cluster a production-hardened environment.
 
 
 ## Network Policies
 
-The platform uses Kubernetes NetworkPolicies to control ingress traffic to application and infrastructure Pods in the `telemetry-system` namespace.
+The platform uses Kubernetes NetworkPolicies to control ingress traffic
+to application and infrastructure Pods in the `telemetry-system` namespace.
 
 ### Implemented Policies
 
 The Helm chart defines six NetworkPolicy resources:
 
-- `telemetry-ingress-default-deny` — denies ingress traffic by default for the selected application and infrastructure Pods.
+- `telemetry-ingress-default-deny` — denies ingress traffic by default
+for the selected application and infrastructure Pods.
 - `ingestion-api-ingress` — allows traffic from the Sensor Simulator and Prometheus.
-- `processing-service-ingress` — allows Prometheus to scrape the Processing Worker metrics endpoint.
-- `postgres-ingress` — allows PostgreSQL connections from the Processing Worker, PostgreSQL Exporter and Alembic migration Job.
-- `rabbitmq-ingress` — allows AMQP traffic from the Ingestion API and Processing Worker, plus Prometheus access to RabbitMQ metrics.
-- `postgres-exporter-ingress` — allows Prometheus to scrape PostgreSQL Exporter metrics.
+- `processing-service-ingress` — allows Prometheus to scrape
+the Processing Worker metrics endpoint.
+- `postgres-ingress` — allows PostgreSQL connections from the Processing Worker,
+PostgreSQL Exporter and Alembic migration Job.
+- `rabbitmq-ingress` — allows AMQP traffic from the Ingestion API
+and Processing Worker, plus Prometheus access to RabbitMQ metrics.
+- `postgres-exporter-ingress` — allows Prometheus to scrape
+PostgreSQL Exporter metrics.
 
-The policies are defined as Helm templates and deployed through Argo CD GitOps reconciliation.
+The policies are defined as Helm templates and deployed
+through Argo CD GitOps reconciliation.
 
 ### Scope and Limitations
 
-The current implementation restricts ingress traffic only; egress traffic is not restricted by these policies.
-
-The RabbitMQ management endpoint is not included in the permitted ingress rules. The default-deny policy applies to the selected Pods in `telemetry-system`; it does not cover the `monitoring` namespace.
-
-These policies define permitted traffic flows but do not, by themselves, demonstrate end-to-end observability or prove that logs, metrics and alerts are successfully delivered.
+The current implementation restricts ingress traffic only;
+egress traffic is not restricted by these policies.
+The RabbitMQ management endpoint is not included in the permitted ingress rules.
+The default-deny policy applies to the selected Pods in `telemetry-system`;
+it does not cover the `monitoring` namespace.
+These policies define permitted traffic flows but do not, by themselves,
+demonstrate end-to-end observability or prove that logs, metrics and alerts
+are successfully delivered.
 
 ### Validation
 
-The NetworkPolicy resources were deployed through Argo CD, which reported the application as `Synced` and `Healthy`. The application workloads remained Ready after synchronization.
-
-Functional traffic-isolation checks were performed separately from resource deployment. The validation evidence should be interpreted according to the specific connectivity tests captured in the project screenshots.
-
-NetworkPolicy validation does not constitute end-to-end validation of Prometheus scraping, log delivery to Loki, Grafana queries, Alertmanager routing or webhook delivery.
+The NetworkPolicy resources were deployed through Argo CD,
+which reported the application as `Synced` and `Healthy`.
+The application workloads remained Ready after synchronization.
+Functional traffic-isolation checks were performed separately
+from resource deployment.
+The validation evidence should be interpreted according
+to the specific connectivity tests captured in the project screenshots.
+NetworkPolicy validation does not constitute end-to-end validation
+of Prometheus scraping, log delivery to Loki, Grafana queries,
+Alertmanager routing or webhook delivery.
 
 
 ## Observability
@@ -471,6 +517,17 @@ Implemented components:
 - RabbitMQ metrics
 - Grafana dashboards
 - application metrics
+
+### Kind Environment Note
+
+During the final recovery validation, application-level
+Prometheus targets—including ingestion-api, processing-service,
+PostgreSQL Exporter, and RabbitMQ—were reported as `up`.
+Several Kubernetes control-plane targets were reported as `down`
+in the local Kind environment.
+These targets were outside the scope of the successful application-level checks
+and can be investigated separately
+if full control-plane metrics coverage is required.
 
 ### Logging
 
@@ -548,16 +605,14 @@ notifications to the webhook receiver.
 ## Disaster Recovery
 
 The repository includes a tested disaster-recovery bootstrap script:
+It provisions the local Kind environment, deploys the platform through Argo CD,
+waits for application readiness, and runs automated smoke tests.
+For a clean recovery, keep the bootstrap script outside the repository
+and run it from the home directory:
 
 ```bash
-./bootstrap-disaster-recovery.sh
-```
-
-For a clean recovery, the script is recommended to be placed outside
-the repository, for example:
-
-```bash
-$HOME/bootstrap-disaster-recovery.sh
+cd "$HOME"
+bash "$HOME/bootstrap-disaster-recovery.sh"
 ```
 
 The script clones the repository into:
@@ -566,32 +621,75 @@ The script clones the repository into:
 $HOME/production-cloud-platform/
 ```
 
-This keeps the bootstrap script outside the repository during a
-from-scratch recovery.
-
+Keeping the bootstrap script outside the repository allows it to bootstrap
+a clean environment without depending on an existing local checkout.
 The recovery process provisions:
 
 ```text
 Docker
    ↓
-kubectl
+kubectl and Kind
    ↓
-Kind
+Helm and Argo CD
    ↓
-Helm
-   ↓
-ArgoCD
+External Secrets Operator
    ↓
 Prometheus / Grafana
    ↓
 Loki / Promtail
    ↓
 Production Cloud Platform
+   ↓
+Readiness checks and DR smoke tests
 ```
 
-After deployment, the script waits for the platform workloads to become
-ready and runs automated smoke tests covering Kubernetes, ArgoCD,
-application metrics, PostgreSQL Exporter, Prometheus targets and Loki.
+The final smoke-test suite validates Kubernetes resources, Argo CD health,
+application metrics, PostgreSQL Exporter, Prometheus targets, Loki queries,
+RabbitMQ, the alert webhook receiver, and NetworkPolicy behavior.
+
+### Recovery Assets for Loki's MinIO Dependency
+
+During the October 2026 disaster-recovery validation, the bootstrap
+process encountered an unavailable upstream MinIO image reference
+required by the Loki deployment configuration.
+
+To make recovery reproducible in this environment, the project includes
+a dedicated recovery directory:
+
+`recovery/minio/`
+
+It contains:
+
+- Dockerfiles for the MinIO and `mc` container images.
+- The required container entrypoint and CA certificate bundle.
+- SHA-256 checksums for integrity verification.
+- License texts and third-party notices.
+- Loki-related configuration and dedicated recovery documentation.
+
+The recovery assets and their intended use are documented in
+[`recovery/minio/README.md`](recovery/minio/README.md).
+
+This is a documented recovery workaround for an external image
+availability issue. It does not replace upstream maintenance or
+guarantee compatibility with every future Loki release.
+
+The final bootstrap was subsequently completed successfully, including
+Loki log-query validation and the broader disaster-recovery smoke tests.
+
+### MinIO recovery binaries v1
+
+The MinIO Server and MinIO Client (`mc`) binaries used to build the
+project's recovery images are available in the
+[MinIO recovery binaries v1 GitHub Release](https://github.com/av-crypto-security/production-cloud-platform/releases/tag/minio-recovery-binaries-v1).
+
+- [MinIO Server binary](https://github.com/av-crypto-security/production-cloud-platform/releases/download/minio-recovery-binaries-v1/minio-binary)
+- [MinIO Client (`mc`) binary](https://github.com/av-crypto-security/production-cloud-platform/releases/download/minio-recovery-binaries-v1/mc-binary)
+
+The binaries were recovered from a running pod. Their byte-for-byte
+identity with upstream release artifacts has not been independently
+verified. See
+[`recovery/minio/THIRD-PARTY-NOTICES.md`](recovery/minio/THIRD-PARTY-NOTICES.md)
+for provenance and licensing information.
 
 
 ## Container Registry
@@ -608,6 +706,14 @@ ghcr.io/av-crypto-security/alert-webhook-receiver:v1.0.1
 
 Versioned container images are referenced by the Kubernetes/Helm
 deployment configuration.
+
+The following pinned images are used by the Loki recovery configuration:
+
+- **MinIO Server:** `ghcr.io/av-crypto-security/minio-recovery:release.2024-12-18t13-15-44z`
+- **MinIO Client (`mc`):** `ghcr.io/av-crypto-security/mc-recovery:release.2024-11-21t17-21-54z`
+
+Build instructions, checksums, and third-party notices are maintained
+in [`recovery/minio/`](recovery/minio/).
 
 
 ## Helm
@@ -729,14 +835,20 @@ Implemented Kubernetes capabilities include:
 - ESO-managed application credentials
 - ESO credential synchronization validation
 
-### Next engineering layers
+### Finalization and Project Status
 
-The remaining work is limited to final platform validation,
-documentation and project freeze.
-
-Terraform infrastructure is maintained as a separate
-cloud-infrastructure track and is not a dependency for the current
-platform freeze.
+The planned platform features have been implemented and validated.
+The final disaster-recovery bootstrap completed successfully,
+including platform readiness checks and automated smoke tests.
+The remaining work is limited to documentation review, evidence organization,
+and the final repository audit.
+No additional platform features are planned for this iteration.
+Terraform infrastructure is maintained as a separate `cloud-infrastructure`
+track and is not a dependency for freezing this project.
+After the final documentation and repository checks,
+the platform will be frozen as a portfolio project.
+The next milestone is hands-on CKA preparation using Kubernetes concepts
+and workloads demonstrated by this platform.
 
 
 ## Platform Workflow
@@ -755,12 +867,23 @@ platform freeze.
 
 ## Security Notice
 
-The active Helm chart no longer generates the application's PostgreSQL and RabbitMQ Secrets from credential values in `values.yaml`.
-Application credentials are sourced from Kubernetes Secrets provisioned outside Git and synchronized by External Secrets Operator into ESO-managed target Secrets.
-Secret values must not be committed to the repository or exposed in terminal output, screenshots or documentation.
-The `secret-source` namespace is protected by namespace-scoped Kubernetes RBAC for the dedicated `eso-kubernetes-reader` ServiceAccount. A dedicated NetworkPolicy for this namespace is not part of the current implementation.
-This project demonstrates secret synchronization and scoped Kubernetes API access. It is a local Kind portfolio environment, not a claim of complete production security hardening.
-The legacy Secret templates are retained as `.yaml.example` reference artifacts outside the active Helm `templates/` directory and are not rendered by the chart.
+The active Helm chart no longer generates the application's PostgreSQL
+and RabbitMQ Secrets from credential values in `values.yaml`.
+Application credentials are sourced from Kubernetes Secrets provisioned outside
+Git and synchronized by External Secrets Operator into ESO-managed target Secrets.
+Secret values must not be committed to the repository or exposed
+in terminal output, screenshots or documentation.
+The `secret-source` namespace is protected by namespace-scoped Kubernetes RBAC
+for the dedicated `eso-kubernetes-reader` ServiceAccount.
+A dedicated NetworkPolicy for this namespace is not part
+of the current implementation.
+This project demonstrates secret synchronization and scoped
+Kubernetes API access.
+It is a local Kind portfolio environment,
+not a claim of complete production security hardening.
+The legacy Secret templates are retained as `.yaml.example`
+reference artifacts outside the active Helm `templates/` directory
+and are not rendered by the chart.
 
 
 ## Screenshots
@@ -818,4 +941,3 @@ screenshots/
 ## License
 
 MIT License
-
